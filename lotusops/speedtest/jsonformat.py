@@ -83,6 +83,7 @@ def makeReport(logfile,filters=["seal_commit_phase2","SectorId"]):
     return sectors
 
 def analyzeReports(reports,stages=["duration","interval"]):
+    print("*******************************************")
     for stage in stages:
         mean_=datetime.timedelta(0)
         max_=datetime.timedelta(0)
@@ -111,12 +112,15 @@ def printReports(reports):
     print("#################################")
     for id in reports.keys():
         print("SectorId({0})-{1}".format(id,reports[id]["interval"]))
-        
-if __name__ == "__main__":
-    reports = makeReport(worker_log)
-    printReports(reports)
+
+def analyzeFile(filepath,filters,isdetailed=False):
+    reports = makeReport(filepath,filters=["seal_commit_phase2","SectorId"])
+    if isdetailed: printReports(reports)
     print("#################################")
-    analyzeReports(reports)
+    analyzeReports(reports)    
+
+if __name__ == "__main__":
+    analyzeFile(worker_log)
     
 # 2021-07-24T22:19:31.744 INFO filcrypto::proofs::api > seal_commit_phase2: start
 # 2021-07-24T22:19:31.858 INFO filecoin_proofs::api::seal > seal_commit_phase2:start: SectorId(4)

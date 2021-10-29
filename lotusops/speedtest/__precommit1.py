@@ -203,7 +203,7 @@ worker_log=os.path.abspath(".\\Calibnet\\pc1.log")
 if (os.name != 'nt'): 
     sectors_log_dir=os.path.abspath("./worker.precommit.log")
     
-from .commitspeed import makeReport,printReports,analyzeReports
+from lotusops.speedtest.jsonformat import makeReport,printReports,analyzeReports
 
 if __name__ == "__main__":
     reports = makeReport(worker_log,filters=["seal_pre_commit_phase1","SectorId"])

@@ -86,13 +86,11 @@ def printReport(report):
 #  dir analysis #
 #################
 
-
-
-def makeReport(start_id,end_id):
+def makeReport(start_id,end_id,issectorprinted=False):
     reports=[]
     for idx in range(start_id,end_id):
         logfile=os.path.join(sectors_log_dir,"%d.log"%idx)
-        print(logfile)
+        issectorprinted: print(logfile)
         if not os.path.exists(logfile): continue
         sector_report=file2events(logfile)
         printReport(sector_report)
@@ -101,6 +99,7 @@ def makeReport(start_id,end_id):
     return reports
 
 def analyzeReport(reports):
+    print("*******************************************")
     for stage in stages:        
         ## max, min, mean
         max_=datetime.timedelta(0)
@@ -125,7 +124,7 @@ def analyzeReport(reports):
     ## calc
     # for report in reports:
 import subprocess
-def AnalyzeSectorLogs():
+def AnalyzeSectorLogs(issectorprinted=False):
     try:
         candidates = [line.split(' ')[0] for line in subprocess.check_output(['lotus-miner', 'sectors','list']).split('\n')][1:]
         sector_ids = [candidate for candidate in candidates if candidate.isdigit()]
@@ -136,7 +135,7 @@ def AnalyzeSectorLogs():
     for id in sector_ids:
         sector_log = subprocess.check_output(['lotus-miner', 'sectors','status','--log',id]).split('\n')
         sector_report=lines2events(sector_log)
-        printReport(sector_report)
+        if issectorprinted: printReport(sector_report)
         reports.append(sector_report)
     # analyze report
     analyzeReport(reports)
