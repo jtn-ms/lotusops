@@ -2,28 +2,28 @@ import os
 import sys
 
 msg_help = "\n\
-            \n======== loganalytics =========\
+            \n======== lotusspeed =========\
             \n\
             \nDescription: \
             \n            A tool for observing time-consuming in a specific sealing stage,\
             \n            to analyze miner or worker's log single or batch\
             \nUsage: \
             \n       [*miner-log* using output of `lotus-miner sectors status --log <sector-id>`] \
-            \n       loganalytics miner\
+            \n       lotusspeed miner\
             \n       [*worker-log* based on rust loging]   \
-            \n       loganalytics [sealing-stage] [filepath/dirpath] [format(json|txt)]]\
+            \n       lotusspeed [sealing-stage] [filepath/dirpath] [format(json|txt)]]\
             \nExamples: \
             \n       [worker-log: precommit1]\
-            \n       loganalytics precommit1 p1.log \
+            \n       lotusspeed precommit1 p1.log \
             \n       [worker-log: precommit2]\
-            \n       loganalytics precommit2 p2.log \
+            \n       lotusspeed precommit2 p2.log \
             \n       [worker-log: commit2]\
-            \n       loganalytics commit2 c2.log"
+            \n       lotusspeed commit2 c2.log"
 
 from .__constants__ import msg_file_or_dir_not_found
 from lotusops.speedtest.sectorstatus import AnalyzeSectorLogs
 from lotusops.speedtest.jsonformat import analyzeFile
-from lotusops.speedtest.jsonformat import analyzeFile as analyzeTxTFile
+from lotusops.speedtest.textformat import analyzeFile as analyzeTxTFile
 
 def loganalytics():
     if len(sys.argv) < 2 or any(argv.startswith("-h") for argv in sys.argv): return msg_help

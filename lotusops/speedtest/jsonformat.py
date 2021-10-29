@@ -100,6 +100,7 @@ def analyzeReports(reports,stages=["duration","interval"]):
             if report[stage] < min_: min_=report[stage]
             sum+= report[stage]
             cnt+=1
+        if cnt == 0: break
         mean_=sum/cnt
         print("min({0})---{1}".format(stage,min_))
         print("max({0})---{1}".format(stage,max_))
