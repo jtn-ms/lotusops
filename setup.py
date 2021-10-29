@@ -20,6 +20,12 @@ with open('README.rst', 'r', encoding='utf-8') as f:
 
 REQUIRES = []
 
+import versioneer
+
+commands = versioneer.get_cmdclass()
+
+import config
+
 kwargs = {
     'name': 'lotusops',
     'version': version,
@@ -29,8 +35,11 @@ kwargs = {
     'author_email': 'gustav0125@outlook.com',
     'maintainer': 'gaojunying',
     'maintainer_email': 'gustav0125@outlook.com',
-    'url': 'https://github.com/_/lotusops',
+    'url': 'https://github.com/deep2essence/lotusops',
     'license': 'MIT/Apache-2.0',
+    'entry_points':{
+        "console_scripts":config.entry_points
+    },   
     'classifiers': [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
@@ -47,6 +56,7 @@ kwargs = {
     'install_requires': REQUIRES,
     'tests_require': ['coverage', 'pytest'],
     'packages': find_packages(exclude=('tests', 'tests.*')),
+    'cmdclass':commands,
 
 }
 

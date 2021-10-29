@@ -29,25 +29,46 @@ def string2datetime(st):
 #################
 # file analysis #
 #################
-from .constant import event
+
+events=[
+        "SectorStartCC",
+        "SectorPacked",
+        "SectorTicket",
+        "SectorPreCommit1",
+        "SectorPreCommit2",
+        "SectorPreCommitBatch",
+        "SectorPreCommitBatchSent",
+        "SectorPreCommitLanded",
+        "SectorSeedReady",
+        "SectorCommitted",
+        "SectorSubmitCommitAggregate",
+        "SectorCommitAggregateSent",
+        "SectorProving",
+        "SectorFinalized",
+        "SectorSealPreCommit1Failed",
+        "SectorRetrySealPreCommit1",
+]
 
 def file2events(logfile):
-    sector_report={}
     with open(logfile,"r") as f:
         lines=f.readlines()
-        previous=0
-        for line in lines:
-            items=line2list(line.rstrip("\n"))
-            if len(items) < 4: continue
-            now=string2datetime(items[1])
-            if "SectorStartCC" in items[2]: previous=now
-            sector_report[line2event(items[2])] = {
-                                                  "order":items[0].rstrip("."),   
-                                                  "time":now,
-                                                  "log":items[3],
-                                                  "period":now-previous
-                                                  }
-            previous=now
+        return lines2events(lines)
+
+def lines2events(lines):
+    sector_report={}
+    previous=0
+    for line in lines:
+        items=line2list(line.rstrip("\n"))
+        if len(items) < 4: continue
+        now=string2datetime(items[1])
+        if "SectorStartCC" in items[2]: previous=now
+        sector_report[line2event(items[2])] = {
+                                                "order":items[0].rstrip("."),   
+                                                "time":now,
+                                                "log":items[3],
+                                                "period":now-previous
+                                                }
+        previous=now
     return sector_report
 
 stages = ["SectorPacked","SectorPreCommit1","SectorPreCommit2","SectorSeedReady","SectorCommitted"]
@@ -103,8 +124,22 @@ def analyzeReport(reports):
 
     ## calc
     # for report in reports:
-        
-
+import subprocess
+def AnalyzeSectorLogs():
+    try:
+        candidates = [line.split(' ')[0] for line in subprocess.check_output(['lotus-miner', 'sectors','list']).split('\n')][1:]
+        sector_ids = [candidate for candidate in candidates if candidate.isdigit()]
+    except:
+        return
+    # make report
+    reports=[]
+    for id in sector_ids:
+        sector_log = subprocess.check_output(['lotus-miner', 'sectors','status','--log',id]).split('\n')
+        sector_report=lines2events(sector_log)
+        printReport(sector_report)
+        reports.append(sector_report)
+    # analyze report
+    analyzeReport(reports)
 
 if __name__ == "__main__":
     sectors=[]
