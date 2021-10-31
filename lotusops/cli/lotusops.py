@@ -114,7 +114,7 @@ def autopledge(interval,iplst):
             # (process,LOTUS_WORKER_PATH)
             envs=list(filter(None,[line\
                  if any(filter in line for filter in ['FIL','LOTUS','CPU','CUDA','TMP','MINER']) else '' \
-                 for line in runscript(action+"strings /proc/%s/environ")]))
+                 for line in runscript(action+"' strings /proc/%s/environ'")]))
             envdict={}
             for env in envs:
                 k,v=env.split("=")
