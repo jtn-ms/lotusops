@@ -90,42 +90,41 @@ def autopledge(interval,iplst):
     # load ips
     ips=load_ips(iplst)
     if len(ips) < 1: return msg_workers_needed
-
     # map(ip,ansible_name)
     ansible_names=getAnsibleNames(ips)
     if len(ansible_names) < 1: return msg_ansible_needs_workers
-
     ip_process_env_tree={}
     # inquiry
-    # {'172.26.48.134':[
-    #                   {'11111':
-    #                            {LOTUS_WORKER_PATH:/filecoin1/lotusworker5}},
-    #                   {'22222':
-    #                            {LOTUS_WORKER_PATH:/filecoin1/lotusworker1}
+    # {'172.26.48.134':{
+    #                   '11111': {LOTUS_WORKER_PATH:/filecoin1/lotusworker5}},
+    #                   22222': {LOTUS_WORKER_PATH:/filecoin1/lotusworker1}
     #                   }
-    #                   ]
     # }
     action="ansible workername -m shell -a"
     for ip in ips:
         action = action.replace('workername',ansible_names[ip])
-        ip_process_env_tree[ip]=[]
-        processes = list(filter(None,[line.split()[1] if 'lotus-worker' in line else '' for line in runscript(action+" 'ps -ef|grep lotus'")]))
+        ip_process_env_tree[ip]={}
+        script=action+" 'ps -ef|grep lotus'"
+        processes = list(filter(None,[line.split()[1] \
+                                      if 'lotus-worker' in line else '' 
+                                      for line in runscript(script)]))
         for process in processes:
             # (process,LOTUS_WORKER_PATH)
+            script=action+" 'strings /proc/%s/environ'"%process
             envs=list(filter(None,[line\
                  if any(filter in line for filter in ['FIL','LOTUS','CPU','CUDA','TMP','MINER']) else '' \
-                 for line in runscript(action+"' strings /proc/%s/environ'")]))
+                 for line in runscript(script)]))
+
             envdict={}
             for env in envs:
                 k,v=env.split("=")
                 envdict[k]=v
-            ip_process_env_tree[ip].append({process:envdict})
+            ip_process_env_tree[ip][process]=envdict
         
-    if len(sys.argv)>4: import json; return json.dumps(ip_process_env_tree, indent=4, sort_keys=True)
-    
     sleeptime = interpret(interval)
     while 1:
-        pledgeable, ip_process_env_tree = chkavailable(ip_process_env_tree)
+        pledgeable = chkavailable(ip_process_env_tree)
+        if pledgeable: print(subprocess.getoutput("lotus-miner sectors pledge").strip("\n"))
         import time
         time.sleep(sleeptime)
 
@@ -158,31 +157,35 @@ def chkavailable(ip_process_env_tree):
     # calc available storage
     used, useable, total = 0,0,0
     cached_sectors_cnt=0
-    for ip,process_env in ip_process_env_tree.items():
+    for ip,procs in ip_process_env_tree.items():
         disks=[]
-        action = "ansible workername -m shell -a".replace('workername',ansible_names[ip])
+        action = "ansible %s -m shell -a"%ansible_names[ip]
         ip_sector_cnt,ip_used_storage,ip_total_storage=0,0,0
-        for process,env in process_env.items():
+        for process,env in procs.items():
+            if any(c not in string.digits for c in process) or\
+               not isinstance(env,dict): continue
             lotus_worker_path=env['LOTUS_WORKER_PATH']
             if not lotus_worker_path: continue
             storage_root_path=lotus_worker_path.split("/")[1]
             if storage_root_path not in disks: disks.append(storage_root_path)
             # ansible workername -m shell -a 'du $LOTUS_WORKER_PATH/cache -hd1'
-            proc_sectors_cnt=len(list(filter(None,[line \
+            script="%s 'du %s/cache -d1'"%(action,lotus_worker_path)
+            proc_sectors_cnt=max(len(list(filter(None,[line \
                             if "cache" in line else '' \
-                            for line in runscript("%s 'du %s/cache -hd1'".format(action,lotus_worker_path))]))) - 1
+                            for line in runscript(script)]))) - 1,0)
             ip_process_env_tree[ip][process]['CACHED_SECTOR_CNT'] = proc_sectors_cnt
             ip_sector_cnt+=proc_sectors_cnt
             # ansible workername -m shell -a 'du $LOTUS_WORKER_PATH -d1'
-            proc_used_storage=runscript("%s 'du %s -hd1'".format(action,lotus_worker_path))[-1].split()[0]
-            ip_process_env_tree[ip][process]['LOTUS_USED_STORAGE'] = proc_used_storage/2**20
+            script="%s 'du %s -d1'"%(action,lotus_worker_path)
+            proc_used_storage=int(runscript(script)[-1].split()[0])
+            ip_process_env_tree[ip][process]['LOTUS_USED_STORAGE'] = int(proc_used_storage/2**20)
             ip_used_storage+=ip_process_env_tree[ip][process]['LOTUS_USED_STORAGE']
         # ansible workername -m shell -a 'df'
         df_out=list(filter(None,[line
                                  if any(disk in line for disk in disks) else '' \
                                  for line in runscript(action+" 'df'")]))
-        ip_total_storage = sum([int(line.split()[1]) for line in df_out])/2**20
-        ip_total_used_storage = sum([int(line.split()[2]) for line in df_out])/2**20
+        ip_total_storage = int(sum([int(line.split()[1]) for line in df_out])/2**20)
+        ip_total_used_storage = int(sum([int(line.split()[2]) for line in df_out])/2**20)
         ip_process_env_tree[ip]['TOTAL'] = ip_total_storage
         ip_process_env_tree[ip]['LOTUS_USED'] = ip_used_storage
         ip_process_env_tree[ip]['NON_LOTUS_USED'] = ip_total_used_storage-ip_used_storage
@@ -191,8 +194,9 @@ def chkavailable(ip_process_env_tree):
         cached_sectors_cnt+=ip_sector_cnt
         useable+=ip_process_env_tree[ip]['LOTUS_USEABLE']
     max_sectors_cnt=max(sectors_cnt,cached_sectors_cnt)
-    if useable > (max_sectors_cnt+1)*storage_per_sector: return True,ip_process_env_tree
-    return False,ip_process_env_tree
+    import json; print(json.dumps(ip_process_env_tree, indent=4, sort_keys=True))
+    if useable > (max_sectors_cnt+1)*storage_per_sector: return True
+    return False
 
 
 
