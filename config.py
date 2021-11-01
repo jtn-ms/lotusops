@@ -1,6 +1,6 @@
 entry_points = [
                 # log analytics      
-                "lotusspeed = lotusops.cli.speedtest:loganalytics",
+                "lotusspeed = lotusops.cli.speedtest:lotusspeed",
                 # lotusops - rmall, abort, autopledge
                 "lotusops = lotusops.cli.lotusops:lotusops",
 ]
