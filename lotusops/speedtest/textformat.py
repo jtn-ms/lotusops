@@ -19,7 +19,8 @@ def analyzeFile(filepath,filters):
             id = msg2sectorId(msg)
             if id < 0: continue
             time=string2datetime(msg.split()[0])
-            if "start" in msg: sectors[id]={};sectors[id]["start"]=time
+            if id not in sectors.keys(): sectors[id]={}
+            if "start" in msg: sectors[id]["start"]=time;continue
             if "finish" in msg: sectors[id]["finish"]=time
             if all(key in sectors[id] for key in ["start","finish"]): 
                 sectors[id]["period"]=sectors[id]["finish"]-sectors[id]["start"]
