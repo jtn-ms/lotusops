@@ -17,9 +17,10 @@ def analyzeFile(filepath,filters):
             msg = line.rstrip("\n")
             if not any(mark in msg for mark in ["start","finish"]): continue
             id = msg2sectorId(msg)
+            if id < 0: continue
             time=string2datetime(msg.split()[0])
             if "start" in msg: sectors[id]={};sectors[id]["start"]=time
             if "finish" in msg: sectors[id]["finish"]=time
             if all(key in sectors[id] for key in ["start","finish"]): 
                 sectors[id]["period"]=sectors[id]["finish"]-sectors[id]["start"]
-                print("SectorId({0})- duration:{1} start:{2} finish:{3}".format(id,sectors[id]["period"],sectors[id]["start"],sectors[id]["finish"]))
+                print("SectorId({0})- duration:{1}    start:{2} finish:{3}".format(id,sectors[id]["period"],sectors[id]["start"],sectors[id]["finish"]))

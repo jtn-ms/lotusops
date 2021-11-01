@@ -48,6 +48,9 @@ if (os.name != 'nt'):
 def msg2sectorId(msg):
     s = msg.find("(")
     e = msg.find(")")
+    import string
+    if s < 0 or e < 0 or e < s or \
+       any(c not in string.digits for c in msg[s+1:e]): return -1
     return int(msg[s+1:e])
 
 # in:  2021-06-21 23:52:25+0800
