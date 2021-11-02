@@ -56,7 +56,6 @@ def execute(actioncode="abort",scripts="lotus-miner sealing jobs",filters=["AP"]
         script=action+" %s"%id
         print(script)
         output = runscript(script)
-        print(output)
 
 msg_workers_needed="The list of precommit workers connected to the miner should be indicated using file or string."
 msg_ansible_needed="this action needs anible installed."
@@ -155,12 +154,22 @@ def chkavailable(ip_process_env_tree):
     sectors_cnt = len(runscript(script))
     consumped = sectors_cnt * storage_per_sector
     # calc available storage
-    used, useable, total = 0,0,0
+    useable_cpu, useable_mem, useable_storage = 0,0,0
     cached_sectors_cnt=0
     for ip,procs in ip_process_env_tree.items():
         disks=[]
         action = "ansible %s -m shell -a"%ansible_names[ip]
         ip_sector_cnt,ip_used_storage,ip_total_storage=0,0,0
+        ip_used_mem,ip_total_mem=0,0
+        ip_used_cpu,ip_total_cpu=0,0
+        # MEM
+        # ansible workername -m shell -a 'free'
+        script=action+" 'free'"
+        output=runscript(script)[1]
+        ip_total_mem = int(output[1])
+        ip_used_mem = int(output[2])
+        # CPU
+        
         for process,env in procs.items():
             if any(c not in string.digits for c in process) or\
                not isinstance(env,dict): continue
@@ -168,6 +177,7 @@ def chkavailable(ip_process_env_tree):
             if not lotus_worker_path: continue
             storage_root_path=lotus_worker_path.split("/")[1]
             if storage_root_path not in disks: disks.append(storage_root_path)
+            # STORAGE, $LOTUS_WORKER_PATH/cache
             # ansible workername -m shell -a 'du $LOTUS_WORKER_PATH/cache -hd1'
             script="%s 'du %s/cache -d1'"%(action,lotus_worker_path)
             proc_sectors_cnt=max(len(list(filter(None,[line \
@@ -175,28 +185,39 @@ def chkavailable(ip_process_env_tree):
                             for line in runscript(script)]))) - 1,0)
             ip_process_env_tree[ip][process]['CACHED_SECTOR_CNT'] = proc_sectors_cnt
             ip_sector_cnt+=proc_sectors_cnt
+            # STORAGE, $LOTUS_WORKER_PATH
             # ansible workername -m shell -a 'du $LOTUS_WORKER_PATH -d1'
             script="%s 'du %s -d1'"%(action,lotus_worker_path)
             proc_used_storage=int(runscript(script)[-1].split()[0])
             ip_process_env_tree[ip][process]['LOTUS_USED_STORAGE'] = int(proc_used_storage/2**20)
             ip_used_storage+=ip_process_env_tree[ip][process]['LOTUS_USED_STORAGE']
+            # CPU, MEM
+            # ansible workername -m shell -a 'ps -eo pid,%mem,%cpu,comm --sort=-%cpu | grep <pid>'
+            script="{0} 'ps -eo pid,%mem,%cpu,comm --sort=-%cpu | grep {1}'".format(action,process)
+            output=runscript(script)[0].split()
+            proc_mem_usage=float(output[1])
+            proc_cpu_usage=float(output[2])
+            ip_process_env_tree[ip][process]['LOTUS_USED_MEM']=float(proc_mem_usage)*ip_total_mem
+            ip_process_env_tree[ip][process]['LOTUS_USED_CPU']=float(proc_cpu_usage)/100
+            
         # ansible workername -m shell -a 'df'
         df_out=list(filter(None,[line
                                  if any(disk in line for disk in disks) else '' \
                                  for line in runscript(action+" 'df'")]))
         ip_total_storage = int(sum([int(line.split()[1]) for line in df_out])/2**20)
         ip_total_used_storage = int(sum([int(line.split()[2]) for line in df_out])/2**20)
-        ip_process_env_tree[ip]['TOTAL'] = ip_total_storage
-        ip_process_env_tree[ip]['LOTUS_USED'] = ip_used_storage
-        ip_process_env_tree[ip]['NON_LOTUS_USED'] = ip_total_used_storage-ip_used_storage
-        ip_process_env_tree[ip]['LOTUS_USEABLE'] = ip_total_storage-ip_process_env_tree[ip]['NON_LOTUS_USED']
-        ip_process_env_tree[ip]['LOTUS_CACHED'] = ip_sector_cnt*storage_per_sector
+        ip_process_env_tree[ip]['STORAGE'] = {}
+        ip_process_env_tree[ip]['STORAGE']['TOTAL'] = ip_total_storage
+        ip_process_env_tree[ip]['STORAGE']['LOTUS_USED'] = ip_used_storage
+        ip_process_env_tree[ip]['STORAGE']['NON_LOTUS_USED'] = ip_total_used_storage-ip_used_storage
+        ip_process_env_tree[ip]['STORAGE']['LOTUS_USEABLE'] = ip_total_storage-ip_process_env_tree[ip]['NON_LOTUS_USED']
+        ip_process_env_tree[ip]['STORAGE']['LOTUS_CACHED'] = ip_sector_cnt*storage_per_sector
         cached_sectors_cnt+=ip_sector_cnt
-        useable+=ip_process_env_tree[ip]['LOTUS_USEABLE']
+        useable_storage+=ip_process_env_tree[ip]['STORAGE']['LOTUS_USEABLE']
     max_sectors_cnt=max(sectors_cnt,cached_sectors_cnt)
     import json; print(json.dumps(ip_process_env_tree, indent=4, sort_keys=True))
-    if useable > (max_sectors_cnt+1)*storage_per_sector: return True
-    return False
+    if useable_storage < (max_sectors_cnt+1)*storage_per_sector: return False
+    return True
 
 
 
