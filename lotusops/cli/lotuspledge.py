@@ -65,17 +65,27 @@ def getAnsibleNames(ips):
     return ansible_names
 
 def runscript(script,isansible=True):
-    non_ansible_start_index=1
-
+    
     if sys.version_info[0]<3:
         import commands
         result = commands.getstatusoutput(script).split("\n")
     else:
         import subprocess
         result = subprocess.getoutput(script).split("\n")
-    # return result
-    return  result[non_ansible_start_index:] if isansible and len(result) > non_ansible_start_index\
-            else result
+    if not isansible: return result
+    # just handling one node
+    # multiple node mode not implemented yet
+    # 'test1 | SUCCESS | rc=0 >>'
+    # 'test2 | CHANGED | rc=0 >>'
+    non_ansible_start_index=1
+    for idx,line in enumerate(result):
+        splited=line.split()
+        if splited[0] == script.split()[1] and \
+            all('|'== splited[i] for i in [1,3]) and\
+            splited[4] == "rc=0":
+            non_ansible_start_index=idx+1;break
+    #
+    return  result[non_ansible_start_index:]
 
 def autopledge(interval,iplst):
     # load ips
