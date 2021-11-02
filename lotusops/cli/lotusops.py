@@ -40,23 +40,23 @@ def execute(actioncode="abort",scripts="lotus-miner sealing jobs",filters=["AP"]
     ids=[]
     try:
         if excluded:
-            candidates=[line.split(' ')[0] \
+            candidates=[line.split()[0] \
                         if not any(filter in line for filter in filters) and \
                             all(c in string.hexdigits for c in line.split(' ')[0]) else '' \
-                        for line in subprocess.check_output(scripts.split(" ")).split('\n')][1:]
+                        for line in runscript(scripts)[1:]]
         else:
-            candidates=[line.split(' ')[0] \
+            candidates=[line.split()[0] \
                         if all(filter in line for filter in filters)  and \
                            all(c in string.hexdigits for c in line.split(' ')[0]) else '' \
-                        for line in subprocess.check_output(scripts.split(" ")).split('\n')][1:]
+                        for line in runscript(scripts)[1:]]
         candidates=list(filter(None,candidates))
     except: return
     action = "lotus-miner sealing abort" if actioncode == "abort" else "lotus-miner sectors remove --really-do-it"
     for id in candidates:
-        slices=action.split(" ")
-        slices.append(id)
-        output = subprocess.check_output(slices)
-        print(output.strip("\n"))
+        script=action+" %s"%id
+        print(script)
+        output = runscript(script)
+        print(output)
 
 msg_workers_needed="The list of precommit workers connected to the miner should be indicated using file or string."
 msg_ansible_needed="this action needs anible installed."
