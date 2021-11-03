@@ -23,7 +23,7 @@ def analyzeFile(filepath,filters):
                 if "finish" in msg: sector["finish"]=time
                 if all(key in sector for key in ["start","finish"]): 
                     sector["period"]=sector["finish"]-sector["start"]
-                    print("SectorId({0})- duration:{1}    start:{2} finish:{3}".format(id,sector["period"],sector["start"],sector["finish"]))
+                    print("duration:{1}    start:{2} finish:{3}".format(sector["period"],sector["start"],sector["finish"]))
                 sector={};continue
             # in case of precommit1, commit2
             id = msg2sectorId(msg)
