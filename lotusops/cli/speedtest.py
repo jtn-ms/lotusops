@@ -31,7 +31,7 @@ def lotusspeed():
     if not os.path.exists(sys.argv[2]) or not os.path.isfile(sys.argv[2]): return msg_file_or_dir_not_found
     filters = {
         "precommit1": ["seal_pre_commit_phase1"],
-        "precommit2": ["seal_pre_commit_phase2"],
+        "precommit2": ["seal_pre_commit_phase2","filecoin_proofs"],
         "commit2": ["seal_commit_phase2"]
     }.get(sys.argv[1], ["seal_commit_phase2"])
     if len(sys.argv) > 3:
