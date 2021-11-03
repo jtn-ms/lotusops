@@ -28,7 +28,7 @@ def lotusops():
 
 import string
 
-from lotuspledge import runscript
+from lotusops.cli.lotuspledge import runscript
 
 def execute(actioncode="abort",scripts="lotus-miner sealing jobs",filters=["AP"],excluded=False):
 
