@@ -9,10 +9,11 @@ msg_help = "\n\
             \n            It repeats to pledge a sector in a specific interval as long as any worker is affordable for the task. \
             \n            It's a capsulation tool based on lotus-miner & shell scripts. Make sure lotus-miner is already installed.\
             \nUsage: \
-            \n       [autopledge] - \
             \n       lotuspledge <time-interval> <worker.ip.lst>\
             \nExamples: \
-            \n       lotuspledge 1m 172.26.48.134|172.26.48.135"
+            \n       lotuspledge 1m 172.26.48.134|172.26.48.135\
+            \n       lotuspledge inspect 172.26.48.134|172.26.48.135"
+
 
 def lotuspledge():
     if  len(sys.argv) < 3 or \
@@ -125,7 +126,8 @@ def autopledge(interval,iplst):
     sleeptime = interpret(interval)
     while 1:
         pledgeable = chkavailable(ip_process_env_tree)
-        if pledgeable: print(runscript("lotus-miner sectors pledge",isansible=False)[0])
+        if any("inspect" in arg for arg in sys.argv): break
+        if pledgeable: runscript("lotus-miner sectors pledge",isansible=False)
         import time
         time.sleep(sleeptime)
 
