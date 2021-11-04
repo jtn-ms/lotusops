@@ -106,17 +106,20 @@ def autopledge(interval,iplst):
     for ip in ips:
         ip_process_env_tree[ip]={}
         script="ansible workername -m shell -a 'ps -ef|grep lotus'".replace('workername',ansible_names[ip])
-        pids = list(filter(None,[line.split()[1] \
+        procs = list(filter(None,[line \
                                 for line in runscript(script) \
                                 if 'lotus-worker' in line]))
-        for pid in pids:
+        for proc in procs:
+            envdict={}
+            pid=proc.split()[1]
+            # tasks for process
+            envdict["TYPE"] = "COMMIT" if "--precommit1=false" in proc else "PRECOMMIT"
             # (process,LOTUS_WORKER_PATH)
             script="ansible {0} -m shell -a 'strings /proc/{1}/environ'".format(ansible_names[ip],pid)
             envs=list(filter(None,[line\
                                  for line in runscript(script) \
                                  if any(filter in line for filter in ['FIL','LOTUS','CPU','CUDA','TMP'])]))
-
-            envdict={}
+            # environment variables added to tree
             for env in envs:
                 k,v=env.split("=")
                 envdict[k]=v
@@ -133,24 +136,39 @@ def autopledge(interval,iplst):
 
 
 def chkavailable(ip_process_env_tree):
-    storage_per_sector=(32+32+453)
+    storage_per_sector_precommit,storage_per_sector_commit=(32+32+453),(32+32)
     cpus_per_sector = 3
     mem_per_sector = 64
-    storage_per_sector_as_kb=storage_per_sector*2**20#KByte
+    storage_per_sector_as_kb_for_precommit=storage_per_sector_precommit*2**20#KByte
     ansible_names = getAnsibleNames(ip_process_env_tree.keys())
-    # current total storage demand
+    # inspect miner
     script='lotus-miner sealing jobs|egrep "AP|PC1|PC2"'
-    sectors_cnt = len(runscript(script,isansible=False))
-    # consumped = sectors_cnt * storage_per_sector
-    # calc available storage
-    useable_cpu, useable_mem, useable_storage = 0,0,0
+    jobs=runscript(script,isansible=False)
+    sectors_cnt_assigned = len(jobs)
+    script='lotus-miner sectors list|egrep "Packing|PreCommit1|PreCommit2"'
+    sectors=runscript(script,isansible=False)
+    len(runscript(script,isansible=False))
+    sectors_cnt_queue = len(sectors)
+    sectors_cnt=max(sectors_cnt_queue,sectors_cnt_assigned)
+    print("#######################################################")
+    print("MINER REPORT: QUEUE(Packing:{0}|PreCommit1:{1}|PreCommit2|{2}),  ASSIGNED(AP:{3}|PC1:{4}|PC2|{5})".format(\
+                                    len(["Packing" in job for job in jobs]),\
+                                    len(["PreCommit1" in job for job in jobs]),\
+                                    len(["PreCommit2" in job for job in jobs]),
+                                    len(["AP" in sector for sector in sectors]),
+                                    len(["PC1" in sector for sector in sectors]),
+                                    len(["PC2" in sector for sector in sectors])))
+    # inspect workers
+    print("#######################################################")
+    print("WORKER REPORT: ")
     cached_sectors_cnt=0
     for ip,procs in ip_process_env_tree.items():
-        disks=[]
+        
         action = "ansible %s -m shell -a"%ansible_names[ip]
-        ip_sector_cnt,ip_used_storage,ip_total_storage=0,0,0
+        
         ip_used_mem,ip_total_mem=0,0
         ip_used_cpus,ip_total_cpus=0,0
+        ip_sector_cnt,ip_used_storage,ip_total_storage=0,0,0
         # MEM
         output=runscript("ansible workername -m shell -a 'free'".\
                         replace('workername',ansible_names[ip]))[1].split()
@@ -165,66 +183,107 @@ def chkavailable(ip_process_env_tree):
         ip_proc_usage={line.split()[0]:{"mem":line.split()[1],"cpu":line.split()[2],"pname":line.split()[3]} for line in output}
         ip_total_used_cpus=int(sum(float(value["cpu"]) for value in ip_proc_usage.values())/100)
         ip_total_used_mem=int(max(sum(float(value["mem"]) for value in ip_proc_usage.values())/100*ip_total_mem,ip_used_mem))
-
-        for process,env in procs.items():
-            if any(c not in string.digits for c in process) or\
+        # STORAGE FOR PreCommit
+        lotus_disks=[]
+        ip_process_env_tree[ip]['STORAGE'] = {
+                                                'PATH':{}, \
+                                                'PLEDGE_USEABLE(CNT)':0 \
+                                            }
+        for pid,env in procs.items():
+            if any(c not in string.digits for c in pid) or\
                not isinstance(env,dict): continue
-            lotus_worker_path=env['LOTUS_WORKER_PATH']
-            if not lotus_worker_path: continue
-            storage_root_path=lotus_worker_path.split("/")[1]
-            if storage_root_path not in disks: disks.append(storage_root_path)
+            if not env['LOTUS_WORKER_PATH']: continue
+            if storage_root_path not in lotus_disks: 
+                lotus_disks.append(storage_root_path)
             # STORAGE, $LOTUS_WORKER_PATH/cache
             # ansible workername -m shell -a 'du $LOTUS_WORKER_PATH/cache -hd1'
-            script="%s 'du %s/cache -d1'"%(action,lotus_worker_path)
+            script="%s 'du %s/cache -d1'"%(action,env['LOTUS_WORKER_PATH'])
             proc_sectors_cnt=max(len(list(filter(None,[line \
                             for line in runscript(script) if "cache" in line ]))) - 1,0)
-            ip_process_env_tree[ip][process]['CACHED_SECTOR_CNT'] = proc_sectors_cnt
-            ip_sector_cnt+=proc_sectors_cnt
+            ip_process_env_tree[ip][pid]['CACHED_SECTOR_CNT'] = proc_sectors_cnt
             # STORAGE, $LOTUS_WORKER_PATH
             # ansible workername -m shell -a 'du $LOTUS_WORKER_PATH -d1'
-            script="%s 'du %s -d1'"%(action,lotus_worker_path)
+            script="%s 'du %s -d1'"%(action,env['LOTUS_WORKER_PATH'])
             proc_used_storage=int(runscript(script)[-1].split()[0])
-            ip_process_env_tree[ip][process]['STORAGE'] = int(proc_used_storage/2**20)
-            ip_used_storage+=ip_process_env_tree[ip][process]['STORAGE']
+            ip_process_env_tree[ip][pid]['STORAGE'] = int(proc_used_storage/2**20)
             # CPU, MEM
-            proc_mem_usage=int(float(ip_proc_usage[process]["mem"])/100*ip_total_mem)
-            proc_cpu_usage=int(float(ip_proc_usage[process]["cpu"])/100)
-            ip_process_env_tree[ip][process]['MEM']=proc_mem_usage
-            ip_process_env_tree[ip][process]['CPU']=proc_cpu_usage
-            ip_used_cpus+=ip_process_env_tree[ip][process]['CPU']
-            ip_used_mem+=ip_process_env_tree[ip][process]['MEM']
+            proc_mem_usage=int(float(ip_proc_usage[pid]["mem"])/100*ip_total_mem)
+            proc_cpu_usage=int(float(ip_proc_usage[pid]["cpu"])/100)
+            ip_process_env_tree[ip][pid]['MEM']=proc_mem_usage
+            ip_process_env_tree[ip][pid]['CPU']=proc_cpu_usage
+            # summing up
+            ip_used_mem += ip_process_env_tree[ip][pid]['MEM']
+            ip_used_cpus += ip_process_env_tree[ip][pid]['CPU']
+            ip_sector_cnt += ip_process_env_tree[ip][pid]['CACHED_SECTOR_CNT']
+            ip_used_storage += ip_process_env_tree[ip][pid]['STORAGE']
             
+            # excluding c2 for storage
+            storage_root_path=env['LOTUS_WORKER_PATH'].split("/")[1]
+            if not ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]:
+                ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path] = {}
+                ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]["TYPE"] = []
+                ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]['PRECOMMIT'] = {}
+                ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]['PRECOMMIT']['USED'] = 0
+                ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]['PRECOMMIT']['CACHED_SECTOR_CNT'] = 0
+                ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]['COMMIT'] = {}
+                ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]['COMMIT']['USED'] = 0
+                ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]['COMMIT']['CACHED_SECTOR_CNT'] = 0
+            else:
+                ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path][env["TYPE"]]['USED'] +=  ip_process_env_tree[ip][pid]['STORAGE']
+                ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path][env["TYPE"]]['CACHED_SECTOR_CNT'] += ip_process_env_tree[ip][pid]['CACHED_SECTOR_CNT']
+
+
+            ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]["TYPE"].append(env["TYPE"])
+
         # ansible workername -m shell -a 'df'
         df_out=list(filter(None,[line
                                  for line in runscript(action+" 'df'") \
-                                 if any(disk in line for disk in disks)]))
-        ip_total_storage = int(sum([int(line.split()[1]) for line in df_out])/2**20)
-        ip_total_used_storage = int(sum([int(line.split()[2]) for line in df_out])/2**20)
-        ip_process_env_tree[ip]['STORAGE'] = {}
-        ip_process_env_tree[ip]['STORAGE']['TOTAL'] = ip_total_storage
-        ip_process_env_tree[ip]['STORAGE']['LOTUS_USED'] = ip_used_storage
-        ip_process_env_tree[ip]['STORAGE']['NON_LOTUS_USED'] = ip_total_used_storage-ip_used_storage
-        ip_process_env_tree[ip]['STORAGE']['LOTUS_USEABLE'] = ip_total_storage-ip_process_env_tree[ip]['STORAGE']['NON_LOTUS_USED']
-        ip_process_env_tree[ip]['STORAGE']['LOTUS_CACHED'] = ip_sector_cnt*storage_per_sector
+                                 if any(disk in line for disk in lotus_disks)]))
+
+        for disk in lotus_disks:
+            ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['SIZE'] = int([int(line.split()[1]) for line in df_out if disk in line][0]/2**20)
+            ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['USED'] = int([int(line.split()[2]) for line in df_out if disk in line][0]/2**20)
+            # cached
+            ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PRECOMMIT']['CACHED'] = \
+                    ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PRECOMMIT']['CACHED_SECTOR_CNT'] * storage_per_sector_precommit
+            ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['COMMIT']['CACHED'] = \
+                    ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['COMMIT']['CACHED_SECTOR_CNT'] * storage_per_sector_commit
+            ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['CACHED'] = \
+                ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PRECOMMIT']['CACHED'] +\
+                ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['COMMIT']['CACHED']
+            # non_lotus usage
+            ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['NON_LOTUS_USED'] = \
+                    ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['USED']-\
+                    ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PRECOMMIT']['USED']-\
+                    ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['COMMIT']['USED']
+            # lotus usable
+            ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['LOTUS_USEABLE'] = \
+                    ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['SIZE'] -\
+                    ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['NON_LOTUS_USED']
+            # pledgeable
+            ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PLEDGE_USEABLE'] = \
+                ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['LOTUS_USEABLE'] -\
+                max(ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['COMMIT']['CACHED'],\
+                    ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['COMMIT']['USED'])\
+                if  any(job == "PRECOMMIT" for job in ip_process_env_tree[ip]['STORAGE']['PATH'][disk]["TYPE"]) \
+                else 0
+            
+            ip_process_env_tree[ip]['STORAGE']['PLEDGE_USEABLE(CNT)'] += int(ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PLEDGE_USEABLE']/storage_per_sector_precommit)
         ip_process_env_tree[ip]['CPU'] = {}
         ip_process_env_tree[ip]['CPU']['TOTAL'] = ip_total_cpus
         ip_process_env_tree[ip]['CPU']['LOTUS_USED'] = ip_used_cpus
         ip_process_env_tree[ip]['CPU']['NON_LOTUS_USED'] = ip_total_used_cpus-ip_used_cpus
-        ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE'] = ip_total_cpus-ip_process_env_tree[ip]['CPU']['NON_LOTUS_USED']
-        ip_process_env_tree[ip]['CPU']['LOTUS_CACHED'] = ip_sector_cnt*cpus_per_sector
+        ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE(CNT)'] = int(max(ip_total_cpus-ip_process_env_tree[ip]['CPU']['NON_LOTUS_USED'],0)/cpus_per_sector)
         ip_process_env_tree[ip]['MEM'] = {}
         ip_process_env_tree[ip]['MEM']['TOTAL'] = ip_total_mem
         ip_process_env_tree[ip]['MEM']['LOTUS_USED'] = ip_used_mem
         ip_process_env_tree[ip]['MEM']['NON_LOTUS_USED'] = ip_total_used_mem-ip_used_mem
-        ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE'] = ip_total_mem-ip_process_env_tree[ip]['MEM']['NON_LOTUS_USED']
-        ip_process_env_tree[ip]['MEM']['LOTUS_CACHED'] = ip_sector_cnt*mem_per_sector
-        cached_sectors_cnt+=ip_sector_cnt
-        useable_storage+=ip_process_env_tree[ip]['STORAGE']['LOTUS_USEABLE']
-        useable_cpu+=ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE']
-        useable_mem+=ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE']
-    max_sectors_cnt=max(sectors_cnt,cached_sectors_cnt)
+        ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'] = int(max(ip_total_mem-ip_process_env_tree[ip]['MEM']['NON_LOTUS_USED'],0),mem_per_sector)
+        # affordability check
+        cached_sectors_cnt+=min(ip_process_env_tree[ip]['STORAGE']['PLEDGE_USEABLE(CNT)'],\
+                                ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE(CNT)'],\
+                                ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'])
+
     import json; print(json.dumps(ip_process_env_tree, indent=4, sort_keys=True))
-    if useable_storage < (max_sectors_cnt+1)*storage_per_sector: return False
-    if useable_cpu < (max_sectors_cnt+1)*cpus_per_sector: return False
-    if useable_mem < (max_sectors_cnt+1)*mem_per_sector: return False
+    if sectors_cnt < cached_sectors_cnt: return False
     return True
