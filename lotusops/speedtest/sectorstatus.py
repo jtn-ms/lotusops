@@ -125,14 +125,21 @@ def analyzeReport(reports):
     start=reports[0]["SectorStartCC"]["time"]
     end=reports[-1]["SectorStartCC"]["time"]
     duration=(end-start).total_seconds()/(24*3600.0)#days
-    p1,p2,c2,finalized=0,0,0,0
+    sector_size = 32#GiB
+    _as_terabyte = sector_size/1000.0
+    p1_cnt,p2_cnt,c2_cnt,fin_cnt=0,0,0,0
     for report in reports:
-        if "SectorPreCommit1" in report.keys(): p1+=1
-        if "SectorPreCommit2" in report.keys(): p2+=1
-        if "SectorCommitted" in report.keys(): c2+=1
-        if "SectorFinalized" in report.keys(): finalized+=1
-    print("DURATION: {0}  START: {1}, FINISH: {2}".format("%.1f hours"%duration,start,end))
-    print("PC1: %.1fG, PC2: %.1fG, C: %.1fG, FIN: %.1fG"%(p1/duration,p2/duration,c2/duration,finalized/duration))
+        if "SectorPreCommit1" in report.keys(): p1_cnt+=1
+        if "SectorPreCommit2" in report.keys(): p2_cnt+=1
+        if "SectorCommitted" in report.keys(): c2_cnt+=1
+        if "SectorFinalized" in report.keys(): fin_cnt+=1
+    print("DURATION: {0}  START: {1}, FINISH: {2}".format("%.1f days"%duration,start,end))
+    print("SECTOR SIZE: %d(GiB)"%sector_size)
+    print("PC1: %.2fT, PC2: %.2fT, C: %.2fT, FIN: %.2fT"%(\
+                p1_cnt*_as_terabyte/duration,\
+                p2_cnt*_as_terabyte/duration,\
+                c2_cnt*_as_terabyte/duration,\
+                fin_cnt*_as_terabyte/duration))
 
 from lotusops.cli.lotuspledge import runscript
 
