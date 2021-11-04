@@ -24,6 +24,7 @@ def analyzeFile(filepath,filters):
                 if all(key in sector for key in ["start","finish"]): 
                     sector["period"]=sector["finish"]-sector["start"]
                     print("duration:{0}    start:{1} finish:{2}".format(sector["period"],sector["start"],sector["finish"]))
+                    sectors[sector["start"]]=sector
                 sector={};continue
             # in case of precommit1, commit2
             id = msg2sectorId(msg)
@@ -34,3 +35,25 @@ def analyzeFile(filepath,filters):
             if all(key in sectors[id] for key in ["start","finish"]): 
                 sectors[id]["period"]=sectors[id]["finish"]-sectors[id]["start"]
                 print("SectorId({0})- duration:{1}    start:{2} finish:{3}".format(id,sectors[id]["period"],sectors[id]["start"],sectors[id]["finish"]))
+        # analyze
+        import datetime
+         ## max, min, mean
+        max_=datetime.timedelta(0)
+        min_=datetime.timedelta(days=10)
+        mean_=datetime.timedelta(0)
+        ## initialize
+        sum=datetime.timedelta(0)
+        cnt=0
+        for k,v in sectors.items():
+            if "period" not in v.keys(): continue
+            cnt+=1
+            if v["period"] < min_: mine_= v["period"]
+            if v["period"] > max_: max_= v["period"]
+            sum+=v["period"]
+        mean_=sum/cnt
+        print("*******************************************")  
+        print("MIN:  {0}".format(min_))
+        print("MAX:  {0}".format(max_))
+        print("MEAN: {0}".format(mean_))
+        print("*******************************************")        
+
