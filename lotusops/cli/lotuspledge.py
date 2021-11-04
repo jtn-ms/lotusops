@@ -110,7 +110,7 @@ def autopledge(interval,iplst):
                                       for line in runscript(script)]))
         for pid in pids:
             # (process,LOTUS_WORKER_PATH)
-            script="ansible {0} -m shell -a 'strings /proc/{1}/environ'".format(ansible_names[ip],)
+            script="ansible {0} -m shell -a 'strings /proc/{1}/environ'".format(ansible_names[ip],pid)
             envs=list(filter(None,[line\
                  if any(filter in line for filter in ['FIL','LOTUS','CPU','CUDA','TMP']) else '' \
                  for line in runscript(script)]))
