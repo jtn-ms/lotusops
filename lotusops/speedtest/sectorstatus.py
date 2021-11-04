@@ -125,7 +125,7 @@ def analyzeReport(reports):
     start=reports[0]["SectorStartCC"]["time"]
     end=reports[-1]["SectorStartCC"]["time"]
     duration=(end-start).total_seconds()/(24*3600.0)#days
-    p1,p2,c2,finalized=0,0,0
+    p1,p2,c2,finalized=0,0,0,0
     for report in reports:
         if "SectorPreCommit1" in report.keys(): p1+=1
         if "SectorPreCommit2" in report.keys(): p2+=1
