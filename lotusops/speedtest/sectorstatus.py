@@ -132,7 +132,7 @@ def analyzeReport(reports):
         if "SectorCommitted" in report.keys(): c2+=1
         if "SectorFinalized" in report.keys(): finalized+=1
     print("DURATION: {0}  START: {1}, FINISH: {2}".format("%.1f hours"%duration,start,end))
-    print("PC1: %.2fT, PC2: %.2fT, C: %.2fT, FIN: %.2fT"%(p1/duration,p2/duration,c2/duration,finalized/duration))
+    print("PC1: %.1fG, PC2: %.1fG, C: %.1fG, FIN: %.1fG"%(p1/duration,p2/duration,c2/duration,finalized/duration))
 
 from lotusops.cli.lotuspledge import runscript
 
