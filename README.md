@@ -16,5 +16,5 @@ commands|explanation|result
 ```lotusspeed precommit1 worker.log```|analyze sealing times based on worker rusting log|...<br>SectorId(176)- duration:3:18:01    start:2021-11-02 19:53:59 finish:2021-11-02 23:12:01<br>...
 ```lotusops abort AP```|abort all jobs<br> with a certain keyword|
 ```lotusops rmall AP```|remove all sectors<br> with a certain keyword|
-```lotuspledge 1m 172.26.48.134\|172.26.48.135```|continous pledge<br> in a certain interval|
+```lotuspledge 1m "172.26.48.134\|172.26.48.135"```|continous pledge<br> in a certain interval|
 

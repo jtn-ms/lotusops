@@ -102,26 +102,24 @@ def autopledge(interval,iplst):
     #                   22222': {LOTUS_WORKER_PATH:/filecoin1/lotusworker1}
     #                   }
     # }
-    action="ansible workername -m shell -a"
     for ip in ips:
-        action = action.replace('workername',ansible_names[ip])
         ip_process_env_tree[ip]={}
-        script=action+" 'ps -ef|grep lotus'"
-        processes = list(filter(None,[line.split()[1] \
+        script="ansible workername -m shell -a 'ps -ef|grep lotus'".replace('workername',ansible_names[ip])
+        pids = list(filter(None,[line.split()[1] \
                                       if 'lotus-worker' in line else '' 
                                       for line in runscript(script)]))
-        for process in processes:
+        for pid in pids:
             # (process,LOTUS_WORKER_PATH)
-            script=action+" 'strings /proc/%s/environ'"%process
+            script="ansible {0} -m shell -a 'strings /proc/{1}/environ'".format(ansible_names[ip],)
             envs=list(filter(None,[line\
-                 if any(filter in line for filter in ['FIL','LOTUS','CPU','CUDA','TMP','MINER']) else '' \
+                 if any(filter in line for filter in ['FIL','LOTUS','CPU','CUDA','TMP']) else '' \
                  for line in runscript(script)]))
 
             envdict={}
             for env in envs:
                 k,v=env.split("=")
                 envdict[k]=v
-            ip_process_env_tree[ip][process]=envdict
+            ip_process_env_tree[ip][pid]=envdict
         
     sleeptime = interpret(interval)
     while 1:
