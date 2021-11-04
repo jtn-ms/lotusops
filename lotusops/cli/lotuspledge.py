@@ -143,7 +143,7 @@ def chkavailable(ip_process_env_tree):
     ansible_names = getAnsibleNames(ip_process_env_tree.keys())
     # inspect miner
     script='lotus-miner sealing jobs|egrep "AP|PC1|PC2"'
-    jobs=runscript(script,isansible=False)
+    jobs=list(filter(None,runscript(script,isansible=False)))
     sectors_cnt_assigned = len(jobs)
     workers = {}
     for job in jobs:
@@ -205,19 +205,26 @@ def chkavailable(ip_process_env_tree):
             # STORAGE, $LOTUS_WORKER_PATH/cache
             # ansible workername -m shell -a 'du $LOTUS_WORKER_PATH/cache -hd1'
             script="%s 'du %s/cache -d1'"%(action,env['LOTUS_WORKER_PATH'])
-            sids=list(filter(None,[line.split("-")[-1] \
+            sids=list(filter(None,[int(line.split("-")[-1]) \
                             for line in runscript(script) if all(mark in line for mark in ["s-t","cache"])]))
+            sids.sort()
             
             ip_process_env_tree[ip][pid]['WORKER'] = {}
             ip_process_env_tree[ip][pid]['WORKER']['CACHED'] = ip_process_env_tree[ip][pid]['WORKER']['RUNNING'] = sids
             ip_process_env_tree[ip][pid]['WORKER']['ID'] = "000000"
             for wid,_sids in workers.items():
-                if any(sid in sids for sid in _sids):
+                __sids=[int(sid) for sid in _sids];__sids.sort()
+                if any(sid in sids for sid in __sids):
                     ip_process_env_tree[ip][pid]['WORKER']['ID'] = wid
-                    ip_process_env_tree[ip][pid]['WORKER']['RUNNING'] = _sids
+                    ip_process_env_tree[ip][pid]['WORKER']['RUNNING'] = __sids
                     break
-            if len(ip_process_env_tree[ip][pid]['WORKER']['CACHED']) != len(ip_process_env_tree[ip][pid]['WORKER']['RUNNING']):
-                ip_process_env_tree[ip][pid]['WORKER']['MISMATCH'] = True
+
+            ip_process_env_tree[ip][pid]['WORKER']['MISMATCH'] = set(ip_process_env_tree[ip][pid]['WORKER']['CACHED'])^\
+                                                                 set(ip_process_env_tree[ip][pid]['WORKER']['RUNNING'])
+            
+            ip_process_env_tree[ip][pid]['WORKER']['CACHED']=",".join([str(sid) for sid in ip_process_env_tree[ip][pid]['WORKER']['CACHED']])
+            ip_process_env_tree[ip][pid]['WORKER']['RUNNING']=",".join([str(sid) for sid in ip_process_env_tree[ip][pid]['WORKER']['RUNNING']])
+            ip_process_env_tree[ip][pid]['WORKER']['MISMATCH']=",".join([str(sid) for sid in ip_process_env_tree[ip][pid]['WORKER']['MISMATCH']])
             ip_process_env_tree[ip][pid]['CACHED_SECTOR_CNT'] = len(sids)
             # STORAGE, $LOTUS_WORKER_PATH
             # ansible workername -m shell -a 'du $LOTUS_WORKER_PATH -d1'
