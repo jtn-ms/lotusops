@@ -147,8 +147,8 @@ def chkavailable(ip_process_env_tree):
     sectors_cnt_assigned = len(jobs)
     workers = {}
     for job in jobs:
-        if not workers[job.split()[2]]:
-            workers[job.split()[2]] = [workers[job.split()[1]]]
+        if job.split()[2] not in workers.keys():
+            workers[job.split()[2]] = [job.split()[1]]
         else: workers[job.split()[2]].append(workers[job.split()[1]])
     script='lotus-miner sectors list|egrep "Packing|PreCommit1|PreCommit2"'
     sectors=runscript(script,isansible=False)
@@ -157,12 +157,12 @@ def chkavailable(ip_process_env_tree):
     sectors_cnt=max(sectors_cnt_queue,sectors_cnt_assigned)
     print("#######################################################")
     print("MINER REPORT: QUEUE(Packing:{0}|PreCommit1:{1}|PreCommit2|{2}),  ASSIGNED(AP:{3}|PC1:{4}|PC2|{5})".format(\
-                                    len([job for job in jobs if "Packing" in job ]),\
-                                    len([job for job in jobs if "PreCommit1" in job ]),\
-                                    len([job for job in jobs if "PreCommit2" in job ]),\
-                                    len([sector for sector in sectors if "AP" in sector]),\
-                                    len([sector for sector in sectors if "PC1" in sector]),\
-                                    len([sector for sector in sectors if "PC2" in sector])))
+                                    len([sector for sector in sectors if "Packing" in sectors ]),\
+                                    len([sector for sector in sectors if "PreCommit1" in sectors ]),\
+                                    len([sector for sector in sectors if "PreCommit2" in sectors ]),\
+                                    len([job for job in jobs if "AP" in job]),\
+                                    len([job for job in sectors if "PC1" in job]),\
+                                    len([job for job in sectors if "PC2" in job])))
     # inspect workers
     print("#######################################################")
     print("WORKER REPORT: ")
@@ -216,7 +216,7 @@ def chkavailable(ip_process_env_tree):
                     ip_process_env_tree[ip][pid]['WORKER']['ID'] = wid
                     ip_process_env_tree[ip][pid]['WORKER']['RUNNING'] = _sids
                     break
-            if len(ip_process_env_tree[ip][pid]['WORKER']['SECTORS']) != len(ip_process_env_tree[ip][pid]['WORKER']['RUNNING']):
+            if len(ip_process_env_tree[ip][pid]['WORKER']['CACHED']) != len(ip_process_env_tree[ip][pid]['WORKER']['RUNNING']):
                 ip_process_env_tree[ip][pid]['WORKER']['MISMATCH'] = True
             ip_process_env_tree[ip][pid]['CACHED_SECTOR_CNT'] = len(sids)
             # STORAGE, $LOTUS_WORKER_PATH
@@ -237,7 +237,7 @@ def chkavailable(ip_process_env_tree):
             
             # excluding c2 for storage
 
-            if not ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]:
+            if storage_root_path not in ip_process_env_tree[ip]['STORAGE']['PATH'].keys():
                 ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path] = {}
                 ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]["TYPE"] = []
                 ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]['PRECOMMIT'] = {}
@@ -296,7 +296,7 @@ def chkavailable(ip_process_env_tree):
         ip_process_env_tree[ip]['MEM']['TOTAL'] = ip_total_mem
         ip_process_env_tree[ip]['MEM']['LOTUS_USED'] = ip_used_mem
         ip_process_env_tree[ip]['MEM']['NON_LOTUS_USED'] = ip_total_used_mem-ip_used_mem
-        ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'] = int(max(ip_total_mem-ip_process_env_tree[ip]['MEM']['NON_LOTUS_USED'],0),mem_per_sector)
+        ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'] = int(max(ip_total_mem-ip_process_env_tree[ip]['MEM']['NON_LOTUS_USED'],0)/mem_per_sector)
         # affordability check
         cached_sectors_cnt+=min(ip_process_env_tree[ip]['STORAGE']['PLEDGE_USEABLE(CNT)'],\
                                 ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE(CNT)'],\
