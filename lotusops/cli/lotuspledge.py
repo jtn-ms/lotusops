@@ -142,27 +142,28 @@ def chkavailable(ip_process_env_tree):
     storage_per_sector_as_kb_for_precommit=storage_per_sector_precommit*2**20#KByte
     ansible_names = getAnsibleNames(ip_process_env_tree.keys())
     # inspect miner
-    script='lotus-miner sealing jobs|egrep "AP|PC1|PC2"'
+    script='lotus-miner sealing jobs|egrep "AP|PC1|PC2|C1|C2|GET"'
     jobs=list(filter(None,runscript(script,isansible=False)))
+    jstats=set([job.split()[4] for job in jobs if not job.split()[4].isdigit()])
+    jstats_precommit="AP|PC1|PC2".split("|")
     sectors_cnt_assigned = len(jobs)
+    sectors_cnt_queue = len([job for job in jobs if any(stat in jobs.split()[4] for stat in sectors_cnt_assigned)])
     workers = {}
     for job in jobs:
         if job.split()[2] not in workers.keys():
             workers[job.split()[2]] = [job.split()[1]]
         else: workers[job.split()[2]].append(workers[job.split()[1]])
-    script='lotus-miner sectors list|egrep "Packing|PreCommit1|PreCommit2"'
+    script='lotus-miner sectors list|egrep "Packing|PreCommit1|PreCommit2|WaitSeed|Committing|FinalizeSector|Removing|RecoveryTimeout"'
     sectors=runscript(script,isansible=False)
-    len(runscript(script,isansible=False))
-    sectors_cnt_queue = len(sectors)
+    sstats=set([sector.split()[1] for sector in sectors if not sector.split()[4].isdigit()])
+    sstats_precommit="Packing|PreCommit1|PreCommit2".split("|")
+    sectors_cnt_queue = len([sector for sector in sectors if any(stat in sector.split()[1] for stat in sstats_precommit)])
     sectors_cnt=max(sectors_cnt_queue,sectors_cnt_assigned)
     print("#######################################################")
-    print("MINER REPORT: QUEUE(Packing:{0}|PreCommit1:{1}|PreCommit2|{2}),  ASSIGNED(AP:{3}|PC1:{4}|PC2|{5})".format(\
-                                    len([sector for sector in sectors if "Packing" in sectors ]),\
-                                    len([sector for sector in sectors if "PreCommit1" in sectors ]),\
-                                    len([sector for sector in sectors if "PreCommit2" in sectors ]),\
-                                    len([job for job in jobs if "AP" in job]),\
-                                    len([job for job in sectors if "PC1" in job]),\
-                                    len([job for job in sectors if "PC2" in job])))
+    print("MINER REPORT:")
+    print("              Queue(%s)"%",".join(["{0}:{1}".format(stat,len([sector for sector in sectors if stat in sectors ])) for stat in sstats]))
+    print("           Assigned(%s)"%",".join(["{0}:{1}".format(stat,len([job for job in jobs if stat in jobs ])) for stat in jstats]))
+
     # inspect workers
     print("#######################################################")
     print("WORKER REPORT: ")
