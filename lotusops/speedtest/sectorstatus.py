@@ -115,7 +115,7 @@ def analyzeReport(reports):
             if report[stage]["period"] < min_: min_=report[stage]["period"]
             sum+= report[stage]["period"]
             cnt+=1
-        mean_=sum/cnt
+        mean_=sum/cnt if cnt!=0 else sum
         print("min({0})---{1}".format(stage,min_))
         print("max({0})---{1}".format(stage,max_))
         print("mean({0})---{1}".format(stage,mean_))

@@ -50,7 +50,7 @@ def analyzeFile(filepath,filters):
             if v["period"] < min_: min_= v["period"]
             if v["period"] > max_: max_= v["period"]
             sum+=v["period"]
-        mean_=sum/cnt
+        mean_=sum/cnt if cnt!=0 else sum
         print("*******************************************")  
         print("MIN:  {0}".format(min_))
         print("MAX:  {0}".format(max_))
