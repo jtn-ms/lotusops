@@ -193,6 +193,8 @@ def chkavailable(ip_process_env_tree):
             if any(c not in string.digits for c in pid) or\
                not isinstance(env,dict): continue
             if not env['LOTUS_WORKER_PATH']: continue
+
+            storage_root_path=env['LOTUS_WORKER_PATH'].split("/")[1]
             if storage_root_path not in lotus_disks: 
                 lotus_disks.append(storage_root_path)
             # STORAGE, $LOTUS_WORKER_PATH/cache
@@ -218,7 +220,7 @@ def chkavailable(ip_process_env_tree):
             ip_used_storage += ip_process_env_tree[ip][pid]['STORAGE']
             
             # excluding c2 for storage
-            storage_root_path=env['LOTUS_WORKER_PATH'].split("/")[1]
+
             if not ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]:
                 ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path] = {}
                 ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]["TYPE"] = []
