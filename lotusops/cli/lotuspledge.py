@@ -145,6 +145,11 @@ def chkavailable(ip_process_env_tree):
     script='lotus-miner sealing jobs|egrep "AP|PC1|PC2"'
     jobs=runscript(script,isansible=False)
     sectors_cnt_assigned = len(jobs)
+    workers = {}
+    for job in jobs:
+        if not workers[job.split()[2]]:
+            workers[job.split()[2]] = [workers[job.split()[1]]]
+        else: workers[job.split()[2]].append(workers[job.split()[1]])
     script='lotus-miner sectors list|egrep "Packing|PreCommit1|PreCommit2"'
     sectors=runscript(script,isansible=False)
     len(runscript(script,isansible=False))
@@ -152,12 +157,12 @@ def chkavailable(ip_process_env_tree):
     sectors_cnt=max(sectors_cnt_queue,sectors_cnt_assigned)
     print("#######################################################")
     print("MINER REPORT: QUEUE(Packing:{0}|PreCommit1:{1}|PreCommit2|{2}),  ASSIGNED(AP:{3}|PC1:{4}|PC2|{5})".format(\
-                                    len(["Packing" in job for job in jobs]),\
-                                    len(["PreCommit1" in job for job in jobs]),\
-                                    len(["PreCommit2" in job for job in jobs]),
-                                    len(["AP" in sector for sector in sectors]),
-                                    len(["PC1" in sector for sector in sectors]),
-                                    len(["PC2" in sector for sector in sectors])))
+                                    len([job for job in jobs if "Packing" in job ]),\
+                                    len([job for job in jobs if "PreCommit1" in job ]),\
+                                    len([job for job in jobs if "PreCommit2" in job ]),\
+                                    len([sector for sector in sectors if "AP" in sector]),\
+                                    len([sector for sector in sectors if "PC1" in sector]),\
+                                    len([sector for sector in sectors if "PC2" in sector])))
     # inspect workers
     print("#######################################################")
     print("WORKER REPORT: ")
@@ -200,9 +205,20 @@ def chkavailable(ip_process_env_tree):
             # STORAGE, $LOTUS_WORKER_PATH/cache
             # ansible workername -m shell -a 'du $LOTUS_WORKER_PATH/cache -hd1'
             script="%s 'du %s/cache -d1'"%(action,env['LOTUS_WORKER_PATH'])
-            proc_sectors_cnt=max(len(list(filter(None,[line \
-                            for line in runscript(script) if "cache" in line ]))) - 1,0)
-            ip_process_env_tree[ip][pid]['CACHED_SECTOR_CNT'] = proc_sectors_cnt
+            sids=list(filter(None,[line.split("-")[-1] \
+                            for line in runscript(script) if all(mark in line for mark in ["s-t","cache"])]))
+            
+            ip_process_env_tree[ip][pid]['WORKER'] = {}
+            ip_process_env_tree[ip][pid]['WORKER']['CACHED'] = ip_process_env_tree[ip][pid]['WORKER']['RUNNING'] = sids
+            ip_process_env_tree[ip][pid]['WORKER']['ID'] = "000000"
+            for wid,_sids in workers.items():
+                if any(sid in sids for sid in _sids):
+                    ip_process_env_tree[ip][pid]['WORKER']['ID'] = wid
+                    ip_process_env_tree[ip][pid]['WORKER']['RUNNING'] = _sids
+                    break
+            if len(ip_process_env_tree[ip][pid]['WORKER']['SECTORS']) != len(ip_process_env_tree[ip][pid]['WORKER']['RUNNING']):
+                ip_process_env_tree[ip][pid]['WORKER']['MISMATCH'] = True
+            ip_process_env_tree[ip][pid]['CACHED_SECTOR_CNT'] = len(sids)
             # STORAGE, $LOTUS_WORKER_PATH
             # ansible workername -m shell -a 'du $LOTUS_WORKER_PATH -d1'
             script="%s 'du %s -d1'"%(action,env['LOTUS_WORKER_PATH'])
