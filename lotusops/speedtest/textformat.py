@@ -47,7 +47,7 @@ def analyzeFile(filepath,filters):
         for k,v in sectors.items():
             if "period" not in v.keys(): continue
             cnt+=1
-            if v["period"] < min_: mine_= v["period"]
+            if v["period"] < min_: min_= v["period"]
             if v["period"] > max_: max_= v["period"]
             sum+=v["period"]
         mean_=sum/cnt
