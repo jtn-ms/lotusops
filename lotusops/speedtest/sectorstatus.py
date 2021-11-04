@@ -122,23 +122,50 @@ def analyzeReport(reports):
         print("*******************************************")
 
     ## calc
-    # for report in reports:
-import subprocess
-def AnalyzeSectorLogs(issectorprinted=False):
+    start=reports[0]["SectorStartCC"]["time"]
+    end=reports[-1]["SectorStartCC"]["time"]
+    duration=(end-start).total_seconds()/(24*3600.0)#days
+    p1,p2,c2,finalized=0,0,0
+    for report in reports:
+        if "SectorPreCommit1" in report.keys(): p1+=1
+        if "SectorPreCommit2" in report.keys(): p2+=1
+        if "SectorCommitted" in report.keys(): c2+=1
+        if "SectorFinalized" in report.keys(): finalized+=1
+    print("DURATION: {0}  START: {1}, FINISH: {2}".format("%.1f hours"%duration,start,end))
+    print("PC1: %.2fT, PC2: %.2fT, C: %.2fT, FIN: %.2fT"%(p1/duration,p2/duration,c2/duration,finalized/duration))
+
+from lotusops.cli.lotuspledge import runscript
+
+# lotusspeed miner 110 300
+# argv=[110,300]
+# lotusspeed miner 110
+# arv [110]
+# lotusspeed miner detail
+# argv=['detail']
+def AnalyzeSectorLogs(argv):
+    
     try:
-        candidates = [line.split(' ')[0] for line in subprocess.check_output(['lotus-miner', 'sectors','list']).split('\n')][1:]
-        sector_ids = [candidate for candidate in candidates if candidate.isdigit()]
+        output=runscript("lotus-miner sectors list",isansible=False)
+        candidates = [line.split()[0] for line in output[1:]]
+        sector_ids = [int(candidate) for candidate in candidates if candidate.isdigit()]
     except:
         return
+    # start:end
+    start = int(argv[0]) if len(argv)>0 and argv[0].isdigit() else sector_ids[0]
+    end = int(argv[1]) if len(argv)>1 and argv[1].isdigit() else sector_ids[-1]
+    issectorprinted=True if len(argv)>0 and not argv[0].isdigit() else False
     # make report
     reports=[]
     for id in sector_ids:
-        sector_log = subprocess.check_output(['lotus-miner', 'sectors','status','--log',id]).split('\n')
+        if id < start: continue
+        if id > end: break
+        sector_log=runscript("lotus-miner sectors status --log %d"%id,isansible=False)
         sector_report=lines2events(sector_log)
         if issectorprinted: printReport(sector_report)
         reports.append(sector_report)
     # analyze report
     analyzeReport(reports)
+
 
 if __name__ == "__main__":
     sectors=[]

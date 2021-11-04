@@ -11,8 +11,9 @@ msg_help = "\n\
             \nUsage: \
             \n       lotuspledge <time-interval> <worker.ip.lst>\
             \nExamples: \
-            \n       lotuspledge 1m 172.26.48.134|172.26.48.135\
-            \n       lotuspledge inspect 172.26.48.134|172.26.48.135"
+            \n       lotuspledge 1m '172.26.48.134|172.26.48.135'\
+            \n       lotuspledge 90 /root/workers.lst\
+            \n       lotuspledge inspect '172.26.48.134|172.26.48.135'"
 
 
 def lotuspledge():
@@ -106,14 +107,14 @@ def autopledge(interval,iplst):
         ip_process_env_tree[ip]={}
         script="ansible workername -m shell -a 'ps -ef|grep lotus'".replace('workername',ansible_names[ip])
         pids = list(filter(None,[line.split()[1] \
-                                      if 'lotus-worker' in line else '' 
-                                      for line in runscript(script)]))
+                                for line in runscript(script) \
+                                if 'lotus-worker' in line]))
         for pid in pids:
             # (process,LOTUS_WORKER_PATH)
             script="ansible {0} -m shell -a 'strings /proc/{1}/environ'".format(ansible_names[ip],pid)
             envs=list(filter(None,[line\
-                 if any(filter in line for filter in ['FIL','LOTUS','CPU','CUDA','TMP']) else '' \
-                 for line in runscript(script)]))
+                                 for line in runscript(script) \
+                                 if any(filter in line for filter in ['FIL','LOTUS','CPU','CUDA','TMP'])]))
 
             envdict={}
             for env in envs:
@@ -176,8 +177,7 @@ def chkavailable(ip_process_env_tree):
             # ansible workername -m shell -a 'du $LOTUS_WORKER_PATH/cache -hd1'
             script="%s 'du %s/cache -d1'"%(action,lotus_worker_path)
             proc_sectors_cnt=max(len(list(filter(None,[line \
-                            if "cache" in line else '' \
-                            for line in runscript(script)]))) - 1,0)
+                            for line in runscript(script) if "cache" in line ]))) - 1,0)
             ip_process_env_tree[ip][process]['CACHED_SECTOR_CNT'] = proc_sectors_cnt
             ip_sector_cnt+=proc_sectors_cnt
             # STORAGE, $LOTUS_WORKER_PATH
@@ -196,8 +196,8 @@ def chkavailable(ip_process_env_tree):
             
         # ansible workername -m shell -a 'df'
         df_out=list(filter(None,[line
-                                 if any(disk in line for disk in disks) else '' \
-                                 for line in runscript(action+" 'df'")]))
+                                 for line in runscript(action+" 'df'") \
+                                 if any(disk in line for disk in disks)]))
         ip_total_storage = int(sum([int(line.split()[1]) for line in df_out])/2**20)
         ip_total_used_storage = int(sum([int(line.split()[2]) for line in df_out])/2**20)
         ip_process_env_tree[ip]['STORAGE'] = {}
