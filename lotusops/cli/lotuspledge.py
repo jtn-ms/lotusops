@@ -146,23 +146,22 @@ def chkavailable(ip_process_env_tree):
     jobs=list(filter(None,runscript(script,isansible=False)))
     jstats=set([job.split()[4] for job in jobs if not job.split()[4].isdigit()])
     jstats_precommit="AP|PC1|PC2".split("|")
-    sectors_cnt_assigned = len(jobs)
-    sectors_cnt_queue = len([job for job in jobs if any(stat in jobs.split()[4] for stat in sectors_cnt_assigned)])
+    sectors_cnt_assigned = len([job for job in jobs if any(stat in job.split()[1] for stat in jstats_precommit)])
     workers = {}
     for job in jobs:
         if job.split()[2] not in workers.keys():
             workers[job.split()[2]] = [job.split()[1]]
         else: workers[job.split()[2]].append(workers[job.split()[1]])
-    script='lotus-miner sectors list|egrep "Packing|PreCommit1|PreCommit2|WaitSeed|Committing|FinalizeSector|Removing|RecoveryTimeout"'
+    script='lotus-miner sectors list|egrep "Packing|PreCommit1|PreCommit2|WaitSeed|CommitWait|Committing|FinalizeSector|Removing|RecoveryTimeout"'
     sectors=runscript(script,isansible=False)
-    sstats=set([sector.split()[1] for sector in sectors if not sector.split()[4].isdigit()])
+    sstats=set([sector.split()[1] for sector in sectors if not sector.split()[1].isdigit()])
     sstats_precommit="Packing|PreCommit1|PreCommit2".split("|")
     sectors_cnt_queue = len([sector for sector in sectors if any(stat in sector.split()[1] for stat in sstats_precommit)])
     sectors_cnt=max(sectors_cnt_queue,sectors_cnt_assigned)
     print("#######################################################")
     print("MINER REPORT:")
-    print("              Queue(%s)"%",".join(["{0}:{1}".format(stat,len([sector for sector in sectors if stat in sectors ])) for stat in sstats]))
-    print("           Assigned(%s)"%",".join(["{0}:{1}".format(stat,len([job for job in jobs if stat in jobs ])) for stat in jstats]))
+    print("              Queue(%s)"%",".join(["{0}:{1}".format(stat,len([sector for sector in sectors if stat in sector ])) for stat in sstats]))
+    print("           Assigned(%s)"%",".join(["{0}:{1}".format(stat,len([job for job in jobs if stat in job ])) for stat in jstats]))
 
     # inspect workers
     print("#######################################################")
