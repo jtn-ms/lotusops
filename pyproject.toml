@@ -1,8 +1,8 @@
 [metadata]
 name = 'lotusops'
 version = '0.0.1'
-description = ''
-author = 'gaojunying'
+description = 'A DevOps tool for lotus(filecoin)'
+author = 'gustav0125'
 author_email = 'gustav0125@outlook.com'
 license = 'MIT/Apache-2.0'
 url = 'https://github.com/deep2essence/lotusops'
