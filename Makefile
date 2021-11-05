@@ -24,3 +24,5 @@ pypi.upload:
 # lotusops/__init.py:__version__=<new_version>
 # git tag <new_version>
 # git push origin --tags
+# git tag -d <tagname>
+# git push --delete origin <tagname>
