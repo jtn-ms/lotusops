@@ -154,7 +154,7 @@ def chkavailable(ip_process_env_tree):
     for job in jobs:
         if job.split()[2] not in workers.keys():
             workers[job.split()[2]] = [job.split()[1]]
-        else: workers[job.split()[2]].append(workers[job.split()[1]])
+        else: workers[job.split()[2]].append(job.split()[1])
     script='lotus-miner sectors list|egrep "Packing|PreCommit1|PreCommit2|WaitSeed|CommitWait|Committing|FinalizeSector|Removing|RecoveryTimeout"'
     sectors=runscript(script,isansible=False)
     sstats=set([sector.split()[1] for sector in sectors if not sector.split()[1].isdigit()])
