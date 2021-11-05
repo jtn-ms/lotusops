@@ -1,3 +1,8 @@
 include LICENSE-APACHE
 include LICENSE-MIT
 include README.rst
+include versioneer.py
+include config.py
+recursive-include lotusops *.zip *.xml *.rels *.conf
+global-include *.zip *.xml *.rels *.py *.conf
+graft lotusops
