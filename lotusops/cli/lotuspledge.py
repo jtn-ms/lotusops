@@ -284,10 +284,12 @@ def chkavailable(ip_process_env_tree):
                     ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['USED']-\
                     ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PRECOMMIT']['USED']-\
                     ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['COMMIT']['USED']
+            ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['NON_LOTUS_USED']=max(0,ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['NON_LOTUS_USED'])
             # lotus usable
             ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['LOTUS_USEABLE'] = \
                     ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['SIZE'] -\
                     ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['NON_LOTUS_USED']
+            ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['LOTUS_USEABLE'] = max(0,ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['LOTUS_USEABLE'])
             # pledgeable
             ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PLEDGE_USEABLE'] = \
                 ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['LOTUS_USEABLE'] -\
@@ -295,7 +297,7 @@ def chkavailable(ip_process_env_tree):
                     ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['COMMIT']['USED'])\
                 if  any(job == "PRECOMMIT" for job in ip_process_env_tree[ip]['STORAGE']['PATH'][disk]["TYPE"]) \
                 else 0
-            
+            ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PLEDGE_USEABLE']=max(0,ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PLEDGE_USEABLE'])
             ip_process_env_tree[ip]['STORAGE']['PLEDGE_USEABLE(CNT)'] += int(ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PLEDGE_USEABLE']/storage_per_sector_precommit)
         ip_process_env_tree[ip]['CPU'] = {}
         ip_process_env_tree[ip]['CPU']['TOTAL'] = ip_total_cpus
