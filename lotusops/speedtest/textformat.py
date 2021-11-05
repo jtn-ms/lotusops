@@ -18,7 +18,7 @@ def analyzeFile(filepath,filters):
             if not any(mark in msg for mark in ["start","finish"]): continue
             time=string2datetime(msg.split()[0])
             # in cse of precommit2
-            if any("commit_phase2" in filter for filter in filters):
+            if any("seal_pre_commit_phase2" in filter for filter in filters):
                 if "start" in msg: sector["start"]=time;continue
                 if "finish" in msg: sector["finish"]=time
                 if all(key in sector for key in ["start","finish"]): 

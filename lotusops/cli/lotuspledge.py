@@ -138,6 +138,8 @@ def autopledge(interval,iplst):
             time.sleep(PLEDGEING_INTEVERAL)
         time.sleep(INSPECT_INTERVAL)
 
+PLEDGE_MARGIN = 1
+
 def chkavailable(ip_process_env_tree):
     storage_per_sector_precommit,storage_per_sector_commit=(32+32+453),(32+32)
     cpus_per_sector = 3
@@ -297,7 +299,7 @@ def chkavailable(ip_process_env_tree):
                     ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['COMMIT']['USED'])\
                 if  any(job == "PRECOMMIT" for job in ip_process_env_tree[ip]['STORAGE']['PATH'][disk]["TYPE"]) \
                 else 0
-            ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PLEDGE_USEABLE']=max(0,ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PLEDGE_USEABLE'])
+            ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PLEDGE_USEABLE']=max(0,ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PLEDGE_USEABLE']-PLEDGE_MARGIN)
             ip_process_env_tree[ip]['STORAGE']['PLEDGE_USEABLE(CNT)'] += int(ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PLEDGE_USEABLE']/storage_per_sector_precommit)
         ip_process_env_tree[ip]['CPU'] = {}
         ip_process_env_tree[ip]['CPU']['TOTAL'] = ip_total_cpus
