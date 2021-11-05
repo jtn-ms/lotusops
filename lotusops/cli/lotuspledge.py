@@ -89,6 +89,8 @@ def runscript(script,isansible=True):
     #
     return  result[non_ansible_start_index:]
 
+PLEDGEING_INTEVERAL=150#s
+
 def autopledge(interval,iplst):
     # load ips
     ips=load_ips(iplst)
@@ -125,7 +127,7 @@ def autopledge(interval,iplst):
                 envdict[k]=v
             ip_process_env_tree[ip][pid]=envdict
         
-    sleeptime = interpret(interval)
+    INSPECT_INTERVAL = interpret(interval)
     while 1:
         pledgeable_cnt = chkavailable(ip_process_env_tree)
         if any("inspect" in arg for arg in sys.argv): break
@@ -133,10 +135,8 @@ def autopledge(interval,iplst):
         while pledgeable_cnt>=0: 
             runscript("lotus-miner sectors pledge",isansible=False)
             pledgeable_cnt-=1
-            time.sleep(sleeptime)
-        time.sleep(sleeptime)
-
-
+            time.sleep(PLEDGEING_INTEVERAL)
+        time.sleep(INSPECT_INTERVAL)
 
 def chkavailable(ip_process_env_tree):
     storage_per_sector_precommit,storage_per_sector_commit=(32+32+453),(32+32)
@@ -256,9 +256,9 @@ def chkavailable(ip_process_env_tree):
                 ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]['COMMIT'] = {}
                 ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]['COMMIT']['USED'] = 0
                 ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]['COMMIT']['CACHED_SECTOR_CNT'] = 0
-            else:
-                ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path][env["TYPE"]]['USED'] +=  ip_process_env_tree[ip][pid]['STORAGE']
-                ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path][env["TYPE"]]['CACHED_SECTOR_CNT'] += ip_process_env_tree[ip][pid]['CACHED_SECTOR_CNT']
+
+            ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path][env["TYPE"]]['USED'] +=  ip_process_env_tree[ip][pid]['STORAGE']
+            ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path][env["TYPE"]]['CACHED_SECTOR_CNT'] += ip_process_env_tree[ip][pid]['CACHED_SECTOR_CNT']
 
 
             ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]["TYPE"].append(env["TYPE"])
