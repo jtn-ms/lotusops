@@ -127,10 +127,13 @@ def autopledge(interval,iplst):
         
     sleeptime = interpret(interval)
     while 1:
-        pledgeable = chkavailable(ip_process_env_tree)
+        pledgeable_cnt = chkavailable(ip_process_env_tree)
         if any("inspect" in arg for arg in sys.argv): break
-        if pledgeable: runscript("lotus-miner sectors pledge",isansible=False)
         import time
+        while pledgeable_cnt>=0: 
+            runscript("lotus-miner sectors pledge",isansible=False)
+            pledgeable_cnt-=1
+            time.sleep(sleeptime)
         time.sleep(sleeptime)
 
 
@@ -310,5 +313,4 @@ def chkavailable(ip_process_env_tree):
                                 ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'])
 
     import json; print(json.dumps(ip_process_env_tree, indent=4, sort_keys=True))
-    if sectors_cnt > cached_sectors_cnt: return False
-    return True
+    return cached_sectors_cnt-sectors_cnt
