@@ -310,5 +310,5 @@ def chkavailable(ip_process_env_tree):
                                 ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'])
 
     import json; print(json.dumps(ip_process_env_tree, indent=4, sort_keys=True))
-    if sectors_cnt < cached_sectors_cnt: return False
+    if sectors_cnt > cached_sectors_cnt: return False
     return True
