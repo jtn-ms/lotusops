@@ -1,11 +1,11 @@
-handi(handy)
-
-A DevOps tool for lotus(filecoin)
+Author: Frank G.
+License: MIT
+Summary: A DevOps tool for lotus(filecoin)
 
 Installation
-
+```
 $ pip install -U lotusops
-
+```
 
 Utilities
 
