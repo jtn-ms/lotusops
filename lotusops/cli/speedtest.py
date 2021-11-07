@@ -26,7 +26,8 @@ from lotusops.speedtest.jsonformat import analyzeFile
 from lotusops.speedtest.textformat import analyzeFile as analyzeTxTFile
 
 def lotusspeed():
-    if len(sys.argv) < 2 or any(arg.startswith("-h") for arg in sys.argv): return msg_help
+    if len(sys.argv) < 2 or \
+        any(any(arg.startswith(mark) for mark in ["-h","--h","help"]) for arg in sys.argv): return msg_help
     if "miner" == sys.argv[1]: return AnalyzeSectorLogs([] if len(sys.argv)==2 else sys.argv[2:])
     if not os.path.exists(sys.argv[2]) or not os.path.isfile(sys.argv[2]): return msg_file_or_dir_not_found
     filters = {

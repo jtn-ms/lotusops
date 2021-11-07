@@ -109,14 +109,14 @@ def analyzeReports(reports,stages=["duration","interval"]):
             cnt+=1
         if cnt == 0: break
         mean_=sum/cnt
-        print("min({0})---{1}".format(stage,min_))
-        print("max({0})---{1}".format(stage,max_))
-        print("mean({0})---{1}".format(stage,mean_))
+        print("MIN({0}) ---{1}".format(stage,min_.strftime("%H:%M:%S")))
+        print("MAX({0}) ---{1}".format(stage,max_.strftime("%H:%M:%S")))
+        print("MEAN({0})---{1}".format(stage,mean_.strftime("%H:%M:%S")))
         print("*******************************************")
                
 def printReports(reports):
     for id in reports.keys():
-        print("SectorId({0})-{1}-({2})-({3})".format(id,reports[id]["duration"],reports[id]["start"],reports[id]["finish"]))
+        print("SectorId({0})-{1}-({2})-({3})".format(id,reports[id]["duration"].strftime("%H:%M:%S"),reports[id]["start"].strftime("%Y-%m-%d %H:%M:%S"),reports[id]["finish"].strftime("%Y-%m-%d %H:%M:%S")))
     print("#################################")
     for id in reports.keys():
         print("SectorId({0})-{1}".format(id,reports[id]["interval"]))

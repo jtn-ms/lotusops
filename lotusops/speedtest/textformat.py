@@ -23,7 +23,7 @@ def analyzeFile(filepath,filters):
                 if "finish" in msg: sector["finish"]=time
                 if all(key in sector for key in ["start","finish"]): 
                     sector["period"]=sector["finish"]-sector["start"]
-                    print("duration:{0}    start:{1} finish:{2}".format(sector["period"],sector["start"],sector["finish"]))
+                    print("DURATION:{0}    START:{1} FINISH:{2}".format(sector["period"].strftime("%H:%M:%S"),sector["start"].strftime("%Y-%m-%d %H:%M:%S"),sector["finish"].strftime("%Y-%m-%d %H:%M:%S")))
                     sectors[sector["start"]]=sector
                 sector={};continue
             # in case of precommit1, commit2
@@ -34,7 +34,7 @@ def analyzeFile(filepath,filters):
             if "finish" in msg: sectors[id]["finish"]=time
             if all(key in sectors[id] for key in ["start","finish"]): 
                 sectors[id]["period"]=sectors[id]["finish"]-sectors[id]["start"]
-                print("SectorId({0})- duration:{1}    start:{2} finish:{3}".format(id,sectors[id]["period"],sectors[id]["start"],sectors[id]["finish"]))
+                print("SectorId({0})- DURATION:{1}    START:{2} FINISH:{3}".format(id,sectors[id]["period"].strftime("%H:%M:%S"),sectors[id]["start"].strftime("%Y-%m-%d %H:%M:%S"),sectors[id]["finish"].strftime("%Y-%m-%d %H:%M:%S")))
         # analyze
         import datetime
          ## max, min, mean
@@ -52,8 +52,8 @@ def analyzeFile(filepath,filters):
             sum+=v["period"]
         mean_=sum/cnt if cnt!=0 else sum
         print("*******************************************")  
-        print("MIN:  {0}".format(min_))
-        print("MAX:  {0}".format(max_))
-        print("MEAN: {0}".format(mean_))
+        print("MIN:  {0}".format(min_.strftime("%H:%M:%S")))
+        print("MAX:  {0}".format(max_.strftime("%H:%M:%S")))
+        print("MEAN: {0}".format(mean_.strftime("%H:%M:%S")))
         print("*******************************************")        
 

@@ -75,11 +75,11 @@ stages = ["SectorPacked","SectorPreCommit1","SectorPreCommit2","SectorSeedReady"
 
 def printReport(report):
     if "SectorStartCC" in report.keys(): print("SectorStartCC     {0}".format(report["SectorStartCC"]["time"]))
-    if "SectorPacked" in report.keys():  print("SectorPacked:     {0}".format(report["SectorPacked"]["period"]))
-    if "SectorPreCommit1" in report.keys(): print("SectorPreCommit1: {0}".format(report["SectorPreCommit1"]["period"]))
-    if "SectorPreCommit2" in report.keys(): print("SectorPreCommit2: {0}".format(report["SectorPreCommit2"]["period"]))
+    if "SectorPacked" in report.keys():  print("SectorPacked:     {0}".format(report["SectorPacked"]["period"].strftime("%H:%M:%S")))
+    if "SectorPreCommit1" in report.keys(): print("SectorPreCommit1: {0}".format(report["SectorPreCommit1"]["period"].strftime("%H:%M:%S")))
+    if "SectorPreCommit2" in report.keys(): print("SectorPreCommit2: {0}".format(report["SectorPreCommit2"]["period"].strftime("%H:%M:%S")))
     # if "SectorSeedReady" in report.keys(): print("SectorSeedReady:  {0}".format(report["SectorSeedReady"]["period"])
-    if "SectorCommitted" in report.keys(): print("SectorCommitted:  {0}".format(report["SectorCommitted"]["period"]))
+    if "SectorCommitted" in report.keys(): print("SectorCommitted:  {0}".format(report["SectorCommitted"]["period"].strftime("%H:%M:%S")))
     if "SectorFinalized" in report.keys(): print("SectorFinalized:  {0}".format(report["SectorFinalized"]["time"]))
 
 #################
@@ -118,7 +118,7 @@ def analyzeReport(reports):
         mean_=sum/cnt if cnt!=0 else sum
         print("min({0})---{1}".format(stage,min_))
         print("max({0})---{1}".format(stage,max_))
-        print("mean({0})---{1}".format(stage,mean_))
+        print("mean({0})---{1}".format(stage,mean_.strftime("%H:%M:%S")))
         print("*******************************************")
 
     ## calc
