@@ -18,8 +18,13 @@ pypi.register:
 	@python3 setup.py register
 
 pypi.upload:
-	@python3 setup.py sdist upload
+	@python3 setup.py sdist
+	@read -p "type username(pypi.org):" username;\
+	 read -p "type password(pypi.org): " password;\
+	 python3 -m twine upload -u$$username -p$$password --repository pypi dist/*
 
+clean:
+	@rm -rf __pycache__ dist lotusops.egg-info
 # [version.control]
 # lotusops/__init.py:__version__=<new_version>
 # git tag <new_version>
