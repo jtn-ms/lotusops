@@ -138,7 +138,12 @@ def analyzeReport(reports):
 
     ## calc
     start=reports[0]["SectorStartCC"]["time"]
-    end=reports[-1]["SectorFinalized"]["time"] if "SectorFinalized" in reports[-1].keys() else reports[-1]["SectorStartCC"]["time"]
+    end=start
+    for report in reports:
+        last=end
+        if "SectorStartCC" in report.keys(): last=report["SectorStartCC"]["time"]
+        if "SectorFinalized" in report.keys(): last=report["SectorFinalized"]["time"]
+        if last>end: end=last
     duration=(end-start).total_seconds()/(24*3600.0)#days
     sector_size = 32#GiB
     _as_terabyte = sector_size/1000.0
