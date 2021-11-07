@@ -98,6 +98,21 @@ def makeReport(start_id,end_id,issectorprinted=False):
         
     return reports
 
+from string import Template
+
+class DeltaTemplate(Template):
+    delimiter = "%"
+
+def strfdelta(tdelta, fmt="%H:%M:%S"):
+    d = {"D": tdelta.days}
+    hours, rem = divmod(tdelta.seconds, 3600)
+    minutes, seconds = divmod(rem, 60)
+    d["H"] = '{:02d}'.format(hours)
+    d["M"] = '{:02d}'.format(minutes)
+    d["S"] = '{:02d}'.format(seconds)
+    t = DeltaTemplate(fmt)
+    return t.substitute(**d)
+
 def analyzeReport(reports):
     print("*******************************************")
     for stage in stages:        
@@ -116,14 +131,14 @@ def analyzeReport(reports):
             sum+= report[stage]["period"]
             cnt+=1
         mean_=sum/cnt if cnt!=0 else sum
-        print("min({0})---{1}".format(stage,min_))
-        print("max({0})---{1}".format(stage,max_))
-        print("mean({0})---{1}".format(stage,mean_.strftime("%H:%M:%S")))
+        print("MIN({0})----{1}".format(stage,min_))
+        print("MAX({0})----{1}".format(stage,max_))
+        print("MEAN({0})---{1}".format(stage,strfdelta(mean_)))
         print("*******************************************")
 
     ## calc
     start=reports[0]["SectorStartCC"]["time"]
-    end=reports[-1]["SectorStartCC"]["time"]
+    end=reports[-1]["SectorFinalized"]["time"] if "SectorFinalized" in reports[-1].keys() else reports[-1]["SectorStartCC"]["time"]
     duration=(end-start).total_seconds()/(24*3600.0)#days
     sector_size = 32#GiB
     _as_terabyte = sector_size/1000.0

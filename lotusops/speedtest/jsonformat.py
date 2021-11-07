@@ -89,6 +89,8 @@ def makeReport(logfile,filters=["seal_commit_phase2","SectorId"]):
                 lastfinish = ts
     return sectors
 
+from lotusops.speedtest.sectorstatus import strfdelta
+
 def analyzeReports(reports,stages=["duration","interval"]):
     print("*******************************************")
     for stage in stages:
@@ -109,14 +111,14 @@ def analyzeReports(reports,stages=["duration","interval"]):
             cnt+=1
         if cnt == 0: break
         mean_=sum/cnt
-        print("MIN({0}) ---{1}".format(stage,min_.strftime("%H:%M:%S")))
-        print("MAX({0}) ---{1}".format(stage,max_.strftime("%H:%M:%S")))
-        print("MEAN({0})---{1}".format(stage,mean_.strftime("%H:%M:%S")))
+        print("MIN({0}) ---{1}".format(stage,strfdelta(min_)))
+        print("MAX({0}) ---{1}".format(stage,strfdelta(max_)))
+        print("MEAN({0})---{1}".format(stage,strfdelta(mean_)))
         print("*******************************************")
                
 def printReports(reports):
     for id in reports.keys():
-        print("SectorId({0})-{1}-({2})-({3})".format(id,reports[id]["duration"].strftime("%H:%M:%S"),reports[id]["start"].strftime("%Y-%m-%d %H:%M:%S"),reports[id]["finish"].strftime("%Y-%m-%d %H:%M:%S")))
+        print("SectorId({0})-{1}-({2})-({3})".format(id,strfdelta(reports[id]["duration"]),reports[id]["start"].strftime("%Y-%m-%d %H:%M:%S"),reports[id]["finish"].strftime("%Y-%m-%d %H:%M:%S")))
     print("#################################")
     for id in reports.keys():
         print("SectorId({0})-{1}".format(id,reports[id]["interval"]))
