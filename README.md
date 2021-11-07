@@ -1,5 +1,5 @@
-# lotusops
-A DevOps tool for lotus(filecoin)
+# lotusops - A DevOps tool for lotus(filecoin)
+As a simply & smartly capsulized tool, it helps lotus users to inspect performance of their workers, autopledge cleverly, and abort & remove unnecessary jobs & sectors. This tool uses lotus-miner & ansible commands directly & indirectly. Before using it, please make sure `lotus-miner` & `ansible <workername> -m ping` is affordable on your miner node. The file path for ansible hosts is expected in `/etc/ansible/hosts`
 ### install
 ```
 [from source]
@@ -88,5 +88,274 @@ MEAN: 0:13:02
 
 $ lotuspledge inspect "172.26.48.134|172.26.48.135"
 >>>
-
+#######################################################
+MINER REPORT:
+              Queue(Committing:19,Removing:11,Packing:1,FinalizeSector:14)
+           Assigned()
+#######################################################
+WORKER REPORT: 
+{
+    "172.26.48.134": {
+        "557527": {
+            "CACHED_SECTOR_CNT": 4,
+            "CPU": 3,
+            "CUDA_VISIBLE_DEVICES": "0",
+            "FIL_PROOFS_MAXIMIZE_CACHING": "1",
+            "FIL_PROOFS_PARAMETER_CACHE": "/filecoin1/filecoin-proof-parameters",
+            "FIL_PROOFS_SDR_PARENTS_CACHE_SIZE": "1073741824",
+            "FIL_PROOFS_USE_GPU_COLUMN_BUILDER": "1",
+            "FIL_PROOFS_USE_GPU_TREE_BUILDER": "1",
+            "FIL_PROOFS_USE_MULTICORE_SDR": "1",
+            "LOTUS_MINER_PATH": "/filecoin1/.lotusminer",
+            "LOTUS_PATH": "/filecoin1/.lotus_cali",
+            "LOTUS_WORKER_PATH": "/filecoin1/lotusworker1",
+            "MEM": 6,
+            "STORAGE": 2583,
+            "TMPDIR": "/filecoin1/lotusworker1/tmp",
+            "TYPE": "PRECOMMIT",
+            "WORKER": {
+                "CACHED": "2,4,5,7",
+                "ID": "000000",
+                "MISMATCH": "",
+                "RUNNING": "2,4,5,7"
+            }
+        },
+        "557709": {
+            "CACHED_SECTOR_CNT": 5,
+            "CPU": 3,
+            "CUDA_VISIBLE_DEVICES": "0",
+            "FIL_PROOFS_MAXIMIZE_CACHING": "1",
+            "FIL_PROOFS_PARAMETER_CACHE": "/filecoin1/filecoin-proof-parameters1",
+            "FIL_PROOFS_SDR_PARENTS_CACHE_SIZE": "1073741824",
+            "FIL_PROOFS_USE_GPU_COLUMN_BUILDER": "1",
+            "FIL_PROOFS_USE_GPU_TREE_BUILDER": "1",
+            "FIL_PROOFS_USE_MULTICORE_SDR": "1",
+            "LOTUS_MINER_PATH": "/filecoin1/.lotusminer",
+            "LOTUS_PATH": "/filecoin1/.lotus_cali",
+            "LOTUS_WORKER_PATH": "/filecoin1/lotusworker5",
+            "MEM": 6,
+            "STORAGE": 2583,
+            "TMPDIR": "/filecoin1/lotusworker5/tmp",
+            "TYPE": "PRECOMMIT",
+            "WORKER": {
+                "CACHED": "1,3,6,8,9",
+                "ID": "000000",
+                "MISMATCH": "",
+                "RUNNING": "1,3,6,8,9"
+            }
+        },
+        "557905": {
+            "CACHED_SECTOR_CNT": 0,
+            "CPU": 0,
+            "CUDA_VISIBLE_DEVICES": "1",
+            "FIL_PROOFS_MAXIMIZE_CACHING": "1",
+            "FIL_PROOFS_PARAMETER_CACHE": "/filecoin1/filecoin-proof-parameters",
+            "FIL_PROOFS_SDR_PARENTS_CACHE_SIZE": "1073741824",
+            "FIL_PROOFS_USE_GPU_COLUMN_BUILDER": "1",
+            "FIL_PROOFS_USE_GPU_TREE_BUILDER": "1",
+            "FIL_PROOFS_USE_MULTICORE_SDR": "1",
+            "LOTUS_MINER_PATH": "/filecoin1/.lotusminer",
+            "LOTUS_PATH": "/filecoin1/.lotus_cali",
+            "LOTUS_WORKER_PATH": "/filecoin1/lotusworker3",
+            "MEM": 18,
+            "STORAGE": 0,
+            "TMPDIR": "/filecoin1/lotusworker3/tmp",
+            "TYPE": "COMMIT",
+            "WORKER": {
+                "CACHED": "",
+                "ID": "000000",
+                "MISMATCH": "",
+                "RUNNING": ""
+            }
+        },
+        "CPU": {
+            "LOTUS_USEABLE(CNT)": 42,
+            "LOTUS_USED": 6,
+            "NON_LOTUS_USED": 2,
+            "TOTAL": 128
+        },
+        "MEM": {
+            "LOTUS_USEABLE(CNT)": 29,
+            "LOTUS_USED": 30,
+            "NON_LOTUS_USED": 86,
+            "TOTAL": 2003
+        },
+        "STORAGE": {
+            "PATH": {
+                "filecoin1": {
+                    "CACHED": 4653,
+                    "COMMIT": {
+                        "CACHED": 0,
+                        "CACHED_SECTOR_CNT": 0,
+                        "USED": 0
+                    },
+                    "LOTUS_USEABLE": 19696,
+                    "NON_LOTUS_USED": 1763,
+                    "PLEDGE_USEABLE": 19695,
+                    "PRECOMMIT": {
+                        "CACHED": 4653,
+                        "CACHED_SECTOR_CNT": 9,
+                        "USED": 5166
+                    },
+                    "SIZE": 21459,
+                    "TYPE": [
+                        "PRECOMMIT",
+                        "PRECOMMIT",
+                        "COMMIT"
+                    ],
+                    "USED": 6929
+                }
+            },
+            "PLEDGE_USEABLE(CNT)": 38
+        }
+    },
+    "172.26.48.135": {
+        "173917": {
+            "CACHED_SECTOR_CNT": 0,
+            "CPU": 1,
+            "CUDA_VISIBLE_DEVICES": "1",
+            "FIL_PROOFS_MAXIMIZE_CACHING": "1",
+            "FIL_PROOFS_PARAMETER_CACHE": "/filecoin3/filecoin-proof-parameters",
+            "FIL_PROOFS_SDR_PARENTS_CACHE_SIZE": "1073741824",
+            "FIL_PROOFS_USE_GPU_COLUMN_BUILDER": "1",
+            "FIL_PROOFS_USE_GPU_TREE_BUILDER": "1",
+            "FIL_PROOFS_USE_MULTICORE_SDR": "1",
+            "LOTUS_WORKER_PATH": "/filecoin3/lotusworker3",
+            "MEM": 78,
+            "STORAGE": 0,
+            "TMPDIR": "/filecoin3/tmp",
+            "TYPE": "COMMIT",
+            "WORKER": {
+                "CACHED": "",
+                "ID": "000000",
+                "MISMATCH": "",
+                "RUNNING": ""
+            }
+        },
+        "174176": {
+            "CACHED_SECTOR_CNT": 0,
+            "CPU": 5,
+            "CUDA_VISIBLE_DEVICES": "0",
+            "FIL_PROOFS_MAXIMIZE_CACHING": "1",
+            "FIL_PROOFS_PARAMETER_CACHE": "/filecoin1/filecoin-proof-parameters",
+            "FIL_PROOFS_SDR_PARENTS_CACHE_SIZE": "1073741824",
+            "FIL_PROOFS_USE_GPU_COLUMN_BUILDER": "1",
+            "FIL_PROOFS_USE_GPU_TREE_BUILDER": "1",
+            "FIL_PROOFS_USE_MULTICORE_SDR": "1",
+            "LOTUS_WORKER_PATH": "/filecoin1/lotusworker",
+            "MEM": 10,
+            "STORAGE": 0,
+            "TMPDIR": "/filecoin1/tmp",
+            "TYPE": "PRECOMMIT",
+            "WORKER": {
+                "CACHED": "",
+                "ID": "000000",
+                "MISMATCH": "",
+                "RUNNING": ""
+            }
+        },
+        "174342": {
+            "CACHED_SECTOR_CNT": 0,
+            "CPU": 3,
+            "CUDA_VISIBLE_DEVICES": "0",
+            "FIL_PROOFS_MAXIMIZE_CACHING": "1",
+            "FIL_PROOFS_PARAMETER_CACHE": "/filecoin2/filecoin-proof-parameters",
+            "FIL_PROOFS_SDR_PARENTS_CACHE_SIZE": "1073741824",
+            "FIL_PROOFS_USE_GPU_COLUMN_BUILDER": "1",
+            "FIL_PROOFS_USE_GPU_TREE_BUILDER": "1",
+            "FIL_PROOFS_USE_MULTICORE_SDR": "1",
+            "LOTUS_WORKER_PATH": "/filecoin2/lotusworker",
+            "MEM": 14,
+            "STORAGE": 0,
+            "TMPDIR": "/filecoin2/tmp",
+            "TYPE": "PRECOMMIT",
+            "WORKER": {
+                "CACHED": "",
+                "ID": "000000",
+                "MISMATCH": "",
+                "RUNNING": ""
+            }
+        },
+        "CPU": {
+            "LOTUS_USEABLE(CNT)": 85,
+            "LOTUS_USED": 9,
+            "NON_LOTUS_USED": 0,
+            "TOTAL": 256
+        },
+        "MEM": {
+            "LOTUS_USEABLE(CNT)": 31,
+            "LOTUS_USED": 102,
+            "NON_LOTUS_USED": 0,
+            "TOTAL": 2003
+        },
+        "STORAGE": {
+            "PATH": {
+                "filecoin1": {
+                    "CACHED": 0,
+                    "COMMIT": {
+                        "CACHED": 0,
+                        "CACHED_SECTOR_CNT": 0,
+                        "USED": 0
+                    },
+                    "LOTUS_USEABLE": 9227,
+                    "NON_LOTUS_USED": 1501,
+                    "PLEDGE_USEABLE": 9226,
+                    "PRECOMMIT": {
+                        "CACHED": 0,
+                        "CACHED_SECTOR_CNT": 0,
+                        "USED": 0
+                    },
+                    "SIZE": 10728,
+                    "TYPE": [
+                        "PRECOMMIT"
+                    ],
+                    "USED": 1501
+                },
+                "filecoin2": {
+                    "CACHED": 0,
+                    "COMMIT": {
+                        "CACHED": 0,
+                        "CACHED_SECTOR_CNT": 0,
+                        "USED": 0
+                    },
+                    "LOTUS_USEABLE": 7000,
+                    "NON_LOTUS_USED": 151,
+                    "PLEDGE_USEABLE": 6999,
+                    "PRECOMMIT": {
+                        "CACHED": 0,
+                        "CACHED_SECTOR_CNT": 0,
+                        "USED": 0
+                    },
+                    "SIZE": 7151,
+                    "TYPE": [
+                        "PRECOMMIT"
+                    ],
+                    "USED": 151
+                },
+                "filecoin3": {
+                    "CACHED": 0,
+                    "COMMIT": {
+                        "CACHED": 0,
+                        "CACHED_SECTOR_CNT": 0,
+                        "USED": 0
+                    },
+                    "LOTUS_USEABLE": 3449,
+                    "NON_LOTUS_USED": 126,
+                    "PLEDGE_USEABLE": 0,
+                    "PRECOMMIT": {
+                        "CACHED": 0,
+                        "CACHED_SECTOR_CNT": 0,
+                        "USED": 0
+                    },
+                    "SIZE": 3575,
+                    "TYPE": [
+                        "COMMIT"
+                    ],
+                    "USED": 126
+                }
+            },
+            "PLEDGE_USEABLE(CNT)": 30
+        }
+    }
+}
 ```
