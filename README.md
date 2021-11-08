@@ -12,21 +12,23 @@ pip install -U lotusops
 ### usages
 commands|explanation
 -----|--------------
-***lotusspeed miner \<start-sector-id)\> \<end-sector-id)\>***|analyze a miner log to display time consumped at various sealing steps
+***lotusspeed miner \<start-sector-id)\> \<end-sector-id)\>***|Analyze a miner log to display time consumped at various sealing steps
 ex1: ```lotusspeed miner```| over the whole life time of miner
 ex2: ```lotusspeed miner 130 260```| over period between sector id 130 to 260
-***lotusspeed \<sealing-type\> \<filepath(worker.log)\>***|analyze a miner log to display time consumped at various sealing steps
+***lotusspeed \<sealing-type\> \<filepath(worker.log)\>***|Analyze a miner log to display time consumped at various sealing steps
 ex1: ```lotusspeed p1 worker.log```| inspect p1
 ex2: ```lotusspeed p2 worker.log```| inspect p2
 ex3: ```lotusspeed c2 worker.log```| inspect c2
-***lotusops abort \<keyword\>***|abort all jobs with a certain keyword(AP,PC1,PC2,...)
-ex: ```lotusops abort AP```|abort all AP jobs
-***lotusops rmall \<keyword\>***|remove all sectors with a certain keyword(Packing, PreCommit1, PreCommit2, ...)
-```lotusops rmall Packing```|remove all sectors at stage of Packing
-***lotuspledge <interval> \<ip.list\>***|continous pledging with a certain ***interval*** in case of any affordable worker's existance
-```lotuspledge inspect "172.26.48.134\|172.26.48.135"```|inspect workers connected to a miner(specifized in params, here 172.26.48.134 & 172.26.48.135)
-```lotuspledge 1m 172.26.48.134```|continous pledging with a interval of 1 minute in case of any affordable worker's existance
-```lotuspledge 90 ip.lst```| pledging with a certain interval(here, 90s) in case any worker of workers listed in ip.lst is affordable for pledging
+***lotusops abort \<keyword\>***|Abort all jobs with a certain keyword(AP,PC1,PC2,...).
+ex: ```lotusops abort AP```|Abort all AP jobs
+***lotusops rmall \<keyword\>***|Remove all sectors with a certain keyword(Packing, PreCommit1, PreCommit2, ...)
+```lotusops rmall Packing```|Remove all sectors at stage of Packing
+***lotusops pledge \<interval\> \<pledging-cnt\>***|to keep pledging with a certain interval until reaching to the indicated number in param.
+```lotusops pledge 1m 28```|for id in {1..28}; do lotus-miner sectors pledge; sleep 2m;done
+***lotuspledge <interval> \<ip.list\>***|Continuous pledging with a certain ***interval*** in case of any affordable worker's existance
+```lotuspledge inspect "172.26.48.134\|172.26.48.135"```|Inspect workers connected to a miner(specifized in params, here 172.26.48.134 & 172.26.48.135)
+```lotuspledge 1m 172.26.48.134```|Continuous pledging with a interval of 1 minute in case of any affordable worker's existance
+```lotuspledge 90 ip.lst```| Continuous pledging with a certain interval(here, 90s) in case any worker of workers listed in ip.lst is affordable for pledging
 
 ### results
 ```
