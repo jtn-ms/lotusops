@@ -57,6 +57,7 @@ kwargs = {
     'tests_require': ['coverage', 'pytest'],
     'packages': find_packages(exclude=('tests', 'tests.*')),
     'cmdclass':commands,
+    'data_files':[('/etc/lotusops/config/', ['config/setting.toml'])]
 
 }
 
