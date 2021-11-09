@@ -3,6 +3,6 @@ include LICENSE-MIT
 include README.md
 include versioneer.py
 include config.py
-recursive-include lotusops *.zip *.xml *.rels *.conf
-global-include *.zip *.xml *.rels *.py *.conf
+recursive-include lotusops *.zip *.xml *.rels *.conf *.toml
+global-include *.zip *.xml *.rels *.py *.conf *.toml
 graft lotusops

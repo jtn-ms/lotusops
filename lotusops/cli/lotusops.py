@@ -23,7 +23,7 @@ msg_help = "\n\
             \n       lotusops pledge 1m 28"
 
 def lotusops():
-    if len(sys.argv) < 3 or any(arg.startswith("-h") for arg in sys.argv): return msg_help
+    if len(sys.argv) < 3 or any(any(arg.startswith(mark) for mark in ["-h","--h","help"]) for arg in sys.argv): return msg_help
     if sys.argv[1] == "abort":
         execute(actioncode="abort",scripts="lotus-miner sealing jobs",filters=sys.argv[2].split("|"),excluded=len(sys.argv)>3)
     elif sys.argv[1] == "rmall":

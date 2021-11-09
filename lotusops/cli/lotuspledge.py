@@ -18,7 +18,7 @@ msg_help = "\n\
 
 def lotuspledge():
     if  len(sys.argv) < 3 or \
-        any(arg.startswith("-h") for arg in sys.argv) or \
+        any(any(arg.startswith(mark) for mark in ["-h","--h","help"]) for arg in sys.argv) or \
         not load_ips(sys.argv[2]): 
             return msg_help
     autopledge(sys.argv[1],sys.argv[2])

@@ -18,7 +18,7 @@ with open('lotusops/__init__.py', 'r') as f:
 with open('README.md', 'r', encoding='utf-8') as f:
     readme = f.read()
 
-REQUIRES = []
+REQUIRES = ['toml']
 
 import versioneer
 

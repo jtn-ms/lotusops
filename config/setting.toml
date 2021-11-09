@@ -1,2 +1,10 @@
 [commands]
 lotus-miner = "lotus-miner"
+lotus-worker = "lotus-worker"
+lotus-daemon = "lotus"
+
+[ansible]
+hosts = "/etc/ansible/hosts"
+
+[pledge]
+interval = "2m"
