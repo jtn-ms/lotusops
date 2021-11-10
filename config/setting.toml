@@ -1,7 +1,9 @@
-[commands]
-lotus-miner = "lotus-miner"
-lotus-worker = "lotus-worker"
-lotus-daemon = "lotus"
+[executables]
+lotus-miner = "/usr/local/bin/lotus-miner"
+ansible = "/usr/local/bin/ansible"
+
+[lotus]
+miner_path = "/filecoin/lotusminer"
 
 [ansible]
 hosts = "/etc/ansible/hosts"

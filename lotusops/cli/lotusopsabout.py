@@ -13,8 +13,8 @@ msg_help = "\n\
 from lotusops.config.setting import showSettings
 
 def lotusopsabout():
-        if len(sys.argv) < 3 or any(any(arg.startswith(mark) for mark in ["-h","--h","help"]) for arg in sys.argv): return msg_help
+        if len(sys.argv) == 1 or any(any(arg.startswith(mark) for mark in ["-h","--h","help"]) for arg in sys.argv): return msg_help
         if sys.argv[1] == "settings": showSettings();return
-        if sys.argv[1] == "commands": print(["\n".join(["lotusops","lotusspeed","lotuspledge","lotusabout"])]);return
+        if sys.argv[1] == "commands": print("\n".join(["lotusops","lotusspeed","lotuspledge","lotusabout"]));return
         return msg_help
 
