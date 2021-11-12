@@ -8,6 +8,7 @@ from lotusops.speedtest.jsonformat import string2datetime,msg2sectorId
 #     return datetime.datetime.strptime(st, "%Y-%m-%dT%H:%M:%S.%f")
 
 from lotusops.speedtest.sectorstatus import strfdelta
+import datetime
 
 def analyzeFile(filepaths,filters):
     total_cnt,total_sum=0,datetime.timedelta(0)
@@ -41,7 +42,7 @@ def analyzeFile(filepaths,filters):
                     sectors[id]["period"]=sectors[id]["finish"]-sectors[id]["start"]
                     print("SectorId({0})- DURATION:{1}    START:{2} FINISH:{3}".format(id,strfdelta(sectors[id]["period"]),sectors[id]["start"].strftime("%Y-%m-%d %H:%M:%S"),sectors[id]["finish"].strftime("%Y-%m-%d %H:%M:%S")))
             # analyze
-            import datetime
+            
             ## max, min, mean
             max_=datetime.timedelta(0)
             min_=datetime.timedelta(days=10)
