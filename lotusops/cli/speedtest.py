@@ -45,4 +45,4 @@ def lotusspeed():
         filters.append("SectorId")
         analyzeFile(os.path.abspath(sys.argv[2]),filters)
     else:
-        analyzeTxTFile(os.path.abspath(sys.argv[2]),filters)
+        analyzeTxTFile([os.path.abspath(sys.argv[i]) for i in range(2,len(sys.argv))],filters)
