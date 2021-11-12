@@ -18,7 +18,11 @@ msg_help = "\n\
             \n       [worker-log: precommit2]\
             \n       lotusspeed precommit2 p2.log \
             \n       [worker-log: commit2]\
-            \n       lotusspeed commit2 c2.log"
+            \n       lotusspeed commit2 c2.log\
+            \n       [json format]\
+            \n       lotusspeed commit2 c2.log json\
+            \n       [worker-log: multiple files]\
+            \n       lotusspeed commit2 c2.1.log c2.2.log"
 
 from .__constants__ import msg_file_or_dir_not_found
 from lotusops.speedtest.sectorstatus import AnalyzeSectorLogs
@@ -41,7 +45,7 @@ def lotusspeed():
         "c2": ["seal_commit_phase2"],
         "c": ["seal_commit_phase2"]
     }.get(sys.argv[1], ["seal_commit_phase2"])
-    if len(sys.argv) > 3:
+    if len(sys.argv)>3 and any("json" in arg for arg in range(3,len(sys.argv))):
         filters.append("SectorId")
         analyzeFile(os.path.abspath(sys.argv[2]),filters)
     else:
