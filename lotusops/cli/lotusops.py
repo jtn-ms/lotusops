@@ -43,7 +43,9 @@ def execute(actioncode="abort",scripts="lotus-miner sealing jobs",filters=["AP"]
     # for id in {1..28}; do lotus-miner sectors pledge; sleep 2m;done
     if actioncode == "pledge":
         interval=interpret(filters)
-        cnt = excluded
+        try:
+            cnt = int(excluded)
+        except: cnt=1
         import time
         while cnt>0:
             print(runscript(scripts,isansible=False))
