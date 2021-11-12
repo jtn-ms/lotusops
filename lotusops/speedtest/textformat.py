@@ -71,16 +71,17 @@ def analyzeFile(filepaths,filters):
     sector_size = 32#GiB
     _as_terabyte = sector_size/1000.0
     dspeed = total_cnt*_as_terabyte/duration
-    mspeed = total_cnt*_as_terabyte/meantime
+    mspeed = len(filepaths) *_as_terabyte/meantime
     print("SectorSize: 32GiB, SectorCnt: {0}, MeanTime: {1}".\
         format(total_cnt,\
-              "%.1f mins"%(meantime*24)))
+              "%.1f mins"%(meantime*24) if any("seal_pre_commit_phase1" in filter for filter in filters) else \
+              "%.1f mins"%(meantime*24*60)))
     print("DURATION:{0} START: {1}, FINISH: {2}".\
         format(strfdelta(finish-start),\
             start.strftime("%Y-%m-%d %H:%M:%S"),\
             finish.strftime("%Y-%m-%d %H:%M:%S")))
     if any("seal_pre_commit_phase1" in filter for filter in filters):
-        print("MINING RATE: {0}".format("%.1fT/D"%dspeed))
+        print("MINING RATE: {0}".format("%.1fTiB/D"%dspeed))
     else:
-        print("MINING RATE: {0}|{1}".format("%.1fT/D"%dspeed,"%.1fT/D"%mspeed))
+        print("MINING RATE: {0}|{1}".format("%.1fTiB/D"%dspeed,"%.1fT/D"%mspeed))
 
