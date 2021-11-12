@@ -45,7 +45,7 @@ def lotusspeed():
         "c2": ["seal_commit_phase2"],
         "c": ["seal_commit_phase2"]
     }.get(sys.argv[1], ["seal_commit_phase2"])
-    if len(sys.argv)>3 and any("json" in arg for arg in range(3,len(sys.argv))):
+    if len(sys.argv)>3 and any("json" in sys.argv[i] for i in range(3,len(sys.argv))):
         filters.append("SectorId")
         analyzeFile(os.path.abspath(sys.argv[2]),filters)
     else:
