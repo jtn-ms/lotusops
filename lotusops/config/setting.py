@@ -3,7 +3,7 @@ import toml
 lotusops_setting_filepath = "/etc/lotusops/config/setting.toml"
 
 def showSettings():
-    print("The configuration file is located in %s. The modification of it's content will affect this tool's operations."%lotusops_setting_filepath)
+    print("The configuration file is located in %s.\nThe modification of it's content will affect this tool's operations.\n"%lotusops_setting_filepath)
     with open(lotusops_setting_filepath,"r") as f:
         config = toml.loads(f.read())
         config_string = toml.dumps(config)
