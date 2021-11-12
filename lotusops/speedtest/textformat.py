@@ -67,5 +67,5 @@ def analyzeFile(filepaths,filters):
     sector_size = 32#GiB
     _as_terabyte = sector_size/1000.0
     speed = total_cnt*_as_terabyte/duration
-    print("SPEED(32GiB*{0}/{1}): {2}TiB/Day, START: {3}, FINISH: {4}".format(total_cnt,"%.1f days"%duration,speed,start,finish,))
+    print("SPEED(32GiB*{0}/{1}): {2}TiB/Day, START: {3}, FINISH: {4}".format(total_cnt,"%.1f days"%duration,"%.2f"%speed,start,finish,))
 
