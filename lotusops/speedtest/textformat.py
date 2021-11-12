@@ -10,10 +10,10 @@ from lotusops.speedtest.jsonformat import string2datetime,msg2sectorId
 from lotusops.speedtest.sectorstatus import strfdelta
 
 def analyzeFile(filepaths,filters):
+    sector,sectors={},{}
+    total_cnt=0
+    start,finish=string2datetime("2089-01-01T00:00:00.000"),string2datetime("1989-01-01T00:00:00.000")
     for filepath in filepaths:
-        sector,sectors={},{}
-        total_cnt=0
-        start,finish=string2datetime("2089-01-01T00:00:00.000"),string2datetime("1989-01-01T00:00:00.000")
         with open(filepath,"r") as f:
             lines=f.readlines()
             for line in lines:
@@ -62,10 +62,10 @@ def analyzeFile(filepaths,filters):
             print("MAX:  {0}".format(strfdelta(max_)))
             print("MEAN: {0}".format(strfdelta(mean_)))
             print("*******************************************")
-        # speed calculation
-        duration=(finish-start).total_seconds()/(24*3600.0)#days
-        sector_size = 32#GiB
-        _as_terabyte = sector_size/1000.0
-        speed = total_cnt*_as_terabyte/duration
-        print("SPEED(32GiB*{0}/{1}): {2}TiB/Day, START: {3}, FINISH: {4}".format(total_cnt,"%.1f days"%duration,speed,start,finish,))
+    # speed calculation
+    duration=(finish-start).total_seconds()/(24*3600.0)#days
+    sector_size = 32#GiB
+    _as_terabyte = sector_size/1000.0
+    speed = total_cnt*_as_terabyte/duration
+    print("SPEED(32GiB*{0}/{1}): {2}TiB/Day, START: {3}, FINISH: {4}".format(total_cnt,"%.1f days"%duration,speed,start,finish,))
 
