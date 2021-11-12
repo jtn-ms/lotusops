@@ -10,10 +10,10 @@ from lotusops.speedtest.jsonformat import string2datetime,msg2sectorId
 from lotusops.speedtest.sectorstatus import strfdelta
 
 def analyzeFile(filepaths,filters):
-    sector,sectors={},{}
     total_cnt=0
     start,finish=string2datetime("2089-01-01T00:00:00.000"),string2datetime("1989-01-01T00:00:00.000")
     for filepath in filepaths:
+        sector,sectors={},{}
         with open(filepath,"r") as f:
             lines=f.readlines()
             for line in lines:
