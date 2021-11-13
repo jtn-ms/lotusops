@@ -133,7 +133,7 @@ def autopledge(interval,iplst):
         if any("inspect" in arg for arg in sys.argv): break
         import time
         while pledgeable_cnt>=0: 
-            runscript("lotus-miner sectors pledge",isansible=False)
+            print(runscript("lotus-miner sectors pledge",isansible=False))
             pledgeable_cnt-=1
             time.sleep(PLEDGEING_INTEVERAL)
         time.sleep(INSPECT_INTERVAL)
