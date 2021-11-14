@@ -44,5 +44,11 @@ uninstall: clean
 
 # wrong meta type totally broke twine
 # it returns with TypeError: expected string or bytes-like object for any call for twine
+# >>> import importlib_metadata as md
+# >>> dists = md.distributions()
+# >>> broken = [dist for dist in dists if dist.name is None]
+# >>> for dist in broken:
+# ...     print(dist._path)
+# ...     print('metadata length', len(dist.metadata()))
 # solution:
 # rm -rf /usr/local/lib/python3.6/dist-packages/lotusops* 
