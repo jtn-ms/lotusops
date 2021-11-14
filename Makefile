@@ -23,11 +23,26 @@ pypi.upload:
 	 read -p "type password(pypi.org): " password;\
 	 python3 -m twine upload -u$$username -p$$password --repository pypi dist/*
 
+# python3 setup.py install
+install:
+	@python3 setup.py build
+	@pip install ./
+
 clean:
-	@rm -rf __pycache__ dist lotusops.egg-info
+	@rm -rf __pycache__ dist lotusops.egg-info build *.pyc
+
+uninstall: clean
+	@rm -rf /usr/local/lib/python3.6/dist-packages/lotusops*
+	@python3 -m pip uninstall lotusops
+	
 # [version.control]
 # lotusops/__init.py:__version__=<new_version>
 # git tag <new_version>
 # git push origin --tags
 # git tag -d <tagname>
 # git push --delete origin <tagname>
+
+# wrong meta type totally broke twine
+# it returns with TypeError: expected string or bytes-like object for any call for twine
+# solution:
+# rm -rf /usr/local/lib/python3.6/dist-packages/lotusops* 
