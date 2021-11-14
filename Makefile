@@ -17,7 +17,7 @@
 pypi.register:
 	@python3 setup.py register
 
-pypi.upload:
+pypi.upload: uninstall
 	@python3 setup.py sdist
 	@read -p "type username(pypi.org):" username;\
 	 read -p "type password(pypi.org): " password;\
@@ -34,7 +34,7 @@ clean:
 uninstall: clean
 	@rm -rf /usr/local/lib/python3.6/dist-packages/lotusops*
 	@python3 -m pip uninstall lotusops
-	
+
 # [version.control]
 # lotusops/__init.py:__version__=<new_version>
 # git tag <new_version>
