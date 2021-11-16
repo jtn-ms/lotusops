@@ -91,6 +91,19 @@ def runscript(script,isansible=True):
 
 PLEDGEING_INTEVERAL=150#s
 
+# in: --resourceUsage 0.4
+# in: --resourceUsage=0.4
+# out 0.4
+def extractValue(line,key="--resourceUsage"):
+    splited=line.split()
+    for idx,slice in enumerate(splited):
+        if key not in slice: continue
+        if key == slice: return splited[idx+1]
+        if "=" in slice: return slice.split("=")[1]
+    return None
+
+# export LOTUS_MINER_PATH=
+# 
 def autopledge(interval,iplst):
     # load ips
     ips=load_ips(iplst)
@@ -119,6 +132,10 @@ def autopledge(interval,iplst):
                 pid=proc.split()[1]
                 # tasks for process
                 envdict["TYPE"] = "COMMIT" if "--precommit1=false" in proc else "PRECOMMIT"
+                # resourceUsage
+                if "resourceUsage" in proc:
+                    try: envdict["RESOURCE_USAGE"] = float(extractValue(proc,key="--resourceUsage"))
+                    except: envdict["RESOURCE_USAGE"] = 1.0
                 # (process,LOTUS_WORKER_PATH)
                 script="ansible {0} -m shell -a 'strings /proc/{1}/environ'".format(ansible_names[ip],pid)
                 envs=list(filter(None,[line\
@@ -155,9 +172,12 @@ def chkavailable(ip_process_env_tree):
     sectors_cnt_assigned = len([job for job in jobs if any(stat in job.split()[1] for stat in jstats_precommit)])
     workers = {}
     for job in jobs:
-        if job.split()[2] not in workers.keys():
-            workers[job.split()[2]] = [job.split()[1]]
-        else: workers[job.split()[2]].append(job.split()[1])
+        try: wid= job.split()[2]
+        except: continue
+        if len(wid) !=8 or not all(c in string.hexdigits for c in wid): continue
+        if wid not in workers.keys():
+            workers[wid] = [job.split()[1]]
+        else: workers[wid].append(job.split()[1])
     script='lotus-miner sectors list|egrep "Packing|PreCommit1|PreCommit2|WaitSeed|CommitWait|Committing|FinalizeSector|Removing|RecoveryTimeout"'
     sectors=list(filter(None,runscript(script,isansible=False)))
     sstats=set([sector.split()[1] for sector in sectors if not sector.split()[1].isdigit()])
@@ -183,12 +203,15 @@ def chkavailable(ip_process_env_tree):
         # MEM
         output=runscript("ansible workername -m shell -a 'free'".\
                         replace('workername',ansible_names[ip]))[1].split()
-        ip_total_mem = int(float(output[1])/2**20)
-        ip_total_used_mem = int(float(output[2])/2**20)
+        try:
+            ip_total_mem = int(float(output[1])/2**20)
+            ip_total_used_mem = int(float(output[2])/2**20)
+        except: continue
         # CPU
         output=runscript("ansible workername -m shell -a 'nproc --all'".\
                         replace('workername',ansible_names[ip]))[0]
-        ip_total_cpus=int(output)
+        try: ip_total_cpus=int(output)
+        except: continue
         # USED
         output=runscript("ansible workername -m shell -a 'ps -eo pid,%mem,%cpu,comm --sort=-%cpu'".replace('workername',ansible_names[ip]))[1:]
         ip_proc_usage={line.split()[0]:{"mem":line.split()[1],"cpu":line.split()[2],"pname":line.split()[3]} for line in output}
@@ -265,6 +288,8 @@ def chkavailable(ip_process_env_tree):
 
 
             ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]["TYPE"].append(env["TYPE"])
+            # resource usage
+            ip_process_env_tree[ip]["RESOURCE_USAGE"]+=ip_process_env_tree[ip][pid]["RESOURCE_USAGE"]
 
         # ansible workername -m shell -a 'df'
         df_out=list(filter(None,[line
@@ -307,11 +332,13 @@ def chkavailable(ip_process_env_tree):
         ip_process_env_tree[ip]['CPU']['LOTUS_USED'] = ip_used_cpus
         ip_process_env_tree[ip]['CPU']['NON_LOTUS_USED'] = ip_total_used_cpus-ip_used_cpus
         ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE(CNT)'] = int(max(ip_total_cpus-ip_process_env_tree[ip]['CPU']['NON_LOTUS_USED'],0)/cpus_per_sector)
+        ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE(CNT)'] = int(ip_process_env_tree[ip]["RESOURCE_USAGE"]*max(ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE(CNT)'],1.0))
         ip_process_env_tree[ip]['MEM'] = {}
         ip_process_env_tree[ip]['MEM']['TOTAL'] = ip_total_mem
         ip_process_env_tree[ip]['MEM']['LOTUS_USED'] = ip_used_mem
         ip_process_env_tree[ip]['MEM']['NON_LOTUS_USED'] = ip_total_used_mem-ip_used_mem
         ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'] = int(max(ip_total_mem-ip_process_env_tree[ip]['MEM']['NON_LOTUS_USED'],0)/mem_per_sector)
+        ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'] = int(ip_process_env_tree[ip]["RESOURCE_USAGE"]*max(ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'],1.0))
         # affordability check
         cached_sectors_cnt+=min(ip_process_env_tree[ip]['STORAGE']['PLEDGE_USEABLE(CNT)'],\
                                 ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE(CNT)'],\
