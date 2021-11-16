@@ -103,7 +103,7 @@ from string import Template
 class DeltaTemplate(Template):
     delimiter = "%"
 
-def strfdelta(tdelta, fmt="%H:%M:%S"):
+def strfdelta(tdelta, fmt="%D:%H:%M:%S"):
     d = {"D": tdelta.days}
     hours, rem = divmod(tdelta.seconds, 3600)
     minutes, seconds = divmod(rem, 60)
