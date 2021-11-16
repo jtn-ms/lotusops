@@ -115,7 +115,7 @@ def autopledge(interval,iplst):
     if len(ansible_names) < 1: return msg_ansible_needs_workers
     INSPECT_INTERVAL = interpret(interval)
     while 1:
-        print("Time: ",datetime.now())
+        print("Time: ",datetime.datetime.now())
         ip_process_env_tree={}
         # inquiry
         # {'172.26.48.134':{
