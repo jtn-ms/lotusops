@@ -102,6 +102,8 @@ def extractValue(line,key="--resourceUsage"):
         if "=" in slice: return slice.split("=")[1]
     return None
 
+import datetime
+
 # export LOTUS_MINER_PATH=
 # 
 def autopledge(interval,iplst):
@@ -113,6 +115,7 @@ def autopledge(interval,iplst):
     if len(ansible_names) < 1: return msg_ansible_needs_workers
     INSPECT_INTERVAL = interpret(interval)
     while 1:
+        print("Time: ",datetime.now())
         ip_process_env_tree={}
         # inquiry
         # {'172.26.48.134':{
@@ -133,7 +136,7 @@ def autopledge(interval,iplst):
                 # tasks for process
                 envdict["TYPE"] = "COMMIT" if "--precommit1=false" in proc else "PRECOMMIT"
                 # resourceUsage
-                if "resourceUsage" in proc:
+                if envdict["TYPE"] == "PRECOMMIT" and "resourceUsage" in proc:
                     try: envdict["RESOURCE_USAGE"] = float(extractValue(proc,key="--resourceUsage"))
                     except: envdict["RESOURCE_USAGE"] = 1.0
                 # (process,LOTUS_WORKER_PATH)
@@ -289,7 +292,10 @@ def chkavailable(ip_process_env_tree):
 
             ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]["TYPE"].append(env["TYPE"])
             # resource usage
-            ip_process_env_tree[ip]["RESOURCE_USAGE"]+=ip_process_env_tree[ip][pid]["RESOURCE_USAGE"]
+            if "RESOURCE_USAGE" in ip_process_env_tree[ip][pid].keys():
+                ip_process_env_tree[ip]["RESOURCE_USAGE"] = 0.0 \
+                    if "RESOURCE_USAGE" not in ip_process_env_tree[ip].keys() else \
+                        ip_process_env_tree[ip]["RESOURCE_USAGE"] + ip_process_env_tree[ip][pid]["RESOURCE_USAGE"]
 
         # ansible workername -m shell -a 'df'
         df_out=list(filter(None,[line
