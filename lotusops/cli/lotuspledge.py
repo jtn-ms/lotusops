@@ -98,37 +98,38 @@ def autopledge(interval,iplst):
     # map(ip,ansible_name)
     ansible_names=getAnsibleNames(ips)
     if len(ansible_names) < 1: return msg_ansible_needs_workers
-    ip_process_env_tree={}
-    # inquiry
-    # {'172.26.48.134':{
-    #                   '11111': {LOTUS_WORKER_PATH:/filecoin1/lotusworker5}},
-    #                   22222': {LOTUS_WORKER_PATH:/filecoin1/lotusworker1}
-    #                   }
-    # }
-    for ip in ips:
-        ip_process_env_tree[ip]={}
-        script="ansible workername -m shell -a 'ps -ef|grep lotus'".replace('workername',ansible_names[ip])
-        procs = list(filter(None,[line \
-                                for line in runscript(script) \
-                                if 'lotus-worker' in line]))
-        for proc in procs:
-            envdict={}
-            pid=proc.split()[1]
-            # tasks for process
-            envdict["TYPE"] = "COMMIT" if "--precommit1=false" in proc else "PRECOMMIT"
-            # (process,LOTUS_WORKER_PATH)
-            script="ansible {0} -m shell -a 'strings /proc/{1}/environ'".format(ansible_names[ip],pid)
-            envs=list(filter(None,[line\
-                                 for line in runscript(script) \
-                                 if any(filter in line for filter in ['FIL','LOTUS','CPU','CUDA','TMP'])]))
-            # environment variables added to tree
-            for env in envs:
-                k,v=env.split("=")
-                envdict[k]=v
-            ip_process_env_tree[ip][pid]=envdict
-        
     INSPECT_INTERVAL = interpret(interval)
     while 1:
+        ip_process_env_tree={}
+        # inquiry
+        # {'172.26.48.134':{
+        #                   '11111': {LOTUS_WORKER_PATH:/filecoin1/lotusworker5}},
+        #                   22222': {LOTUS_WORKER_PATH:/filecoin1/lotusworker1}
+        #                   }
+        # }
+        # make (ip,procs)
+        for ip in ips:
+            ip_process_env_tree[ip]={}
+            script="ansible workername -m shell -a 'ps -ef|grep lotus'".replace('workername',ansible_names[ip])
+            procs = list(filter(None,[line \
+                                    for line in runscript(script) \
+                                    if 'lotus-worker' in line]))
+            for proc in procs:
+                envdict={}
+                pid=proc.split()[1]
+                # tasks for process
+                envdict["TYPE"] = "COMMIT" if "--precommit1=false" in proc else "PRECOMMIT"
+                # (process,LOTUS_WORKER_PATH)
+                script="ansible {0} -m shell -a 'strings /proc/{1}/environ'".format(ansible_names[ip],pid)
+                envs=list(filter(None,[line\
+                                    for line in runscript(script) \
+                                    if any(filter in line for filter in ['FIL','LOTUS','CPU','CUDA','TMP'])]))
+                # environment variables added to tree
+                for env in envs:
+                    k,v=env.split("=")
+                    envdict[k]=v
+                ip_process_env_tree[ip][pid]=envdict
+        # check availability for pledging    
         pledgeable_cnt = chkavailable(ip_process_env_tree)
         if any("inspect" in arg for arg in sys.argv): break
         import time
