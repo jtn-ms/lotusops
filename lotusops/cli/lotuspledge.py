@@ -130,13 +130,17 @@ def autopledge(interval,iplst):
             procs = list(filter(None,[line \
                                     for line in runscript(script) \
                                     if 'lotus-worker' in line]))
+            resource_for_precommit = 0.0
+            ip_process_env_tree[ip]["RESOURCE_USAGE(PRECOMMIT)"] = 0.0
+            ip_process_env_tree[ip]['CPU'] = {}
+            ip_process_env_tree[ip]['MEM'] = {}
             for proc in procs:
                 envdict={}
                 pid=proc.split()[1]
                 # tasks for process
                 envdict["TYPE"] = "COMMIT" if "--precommit1=false" in proc else "PRECOMMIT"
                 # resourceUsage
-                if envdict["TYPE"] == "PRECOMMIT" and "resourceUsage" in proc:
+                if "resourceUsage" in proc:
                     try: envdict["RESOURCE_USAGE"] = float(extractValue(proc,key="--resourceUsage"))
                     except: envdict["RESOURCE_USAGE"] = 1.0
                 # (process,LOTUS_WORKER_PATH)
@@ -149,6 +153,12 @@ def autopledge(interval,iplst):
                     k,v=env.split("=")
                     envdict[k]=v
                 ip_process_env_tree[ip][pid]=envdict
+                # resource usage
+                if envdict["TYPE"] == "PRECOMMIT" and "RESOURCE_USAGE" in envdict.keys():
+                    resource_for_precommit += envdict["RESOURCE_USAGE"]
+            # resource usage
+            ip_process_env_tree[ip]["RESOURCE_USAGE(PRECOMMIT)"] = 1.0 if resource_for_precommit == 0 else resource_for_precommit
+
         # check availability for pledging    
         pledgeable_cnt = chkavailable(ip_process_env_tree)
         if any("inspect" in arg for arg in sys.argv): break
@@ -289,13 +299,8 @@ def chkavailable(ip_process_env_tree):
             ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path][env["TYPE"]]['USED'] +=  ip_process_env_tree[ip][pid]['STORAGE']
             ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path][env["TYPE"]]['CACHED_SECTOR_CNT'] += ip_process_env_tree[ip][pid]['CACHED_SECTOR_CNT']
 
-
             ip_process_env_tree[ip]['STORAGE']['PATH'][storage_root_path]["TYPE"].append(env["TYPE"])
-            # resource usage
-            if "RESOURCE_USAGE" in ip_process_env_tree[ip][pid].keys():
-                ip_process_env_tree[ip]["RESOURCE_USAGE"] = 0.0 \
-                    if "RESOURCE_USAGE" not in ip_process_env_tree[ip].keys() else \
-                        ip_process_env_tree[ip]["RESOURCE_USAGE"] + ip_process_env_tree[ip][pid]["RESOURCE_USAGE"]
+
 
         # ansible workername -m shell -a 'df'
         df_out=list(filter(None,[line
@@ -333,18 +338,18 @@ def chkavailable(ip_process_env_tree):
                 else 0
             ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PLEDGE_USEABLE']=max(0,ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PLEDGE_USEABLE']-PLEDGE_MARGIN)
             ip_process_env_tree[ip]['STORAGE']['PLEDGE_USEABLE(CNT)'] += int(ip_process_env_tree[ip]['STORAGE']['PATH'][disk]['PLEDGE_USEABLE']/storage_per_sector_precommit)
-        ip_process_env_tree[ip]['CPU'] = {}
+        # cpu
         ip_process_env_tree[ip]['CPU']['TOTAL'] = ip_total_cpus
         ip_process_env_tree[ip]['CPU']['LOTUS_USED'] = ip_used_cpus
         ip_process_env_tree[ip]['CPU']['NON_LOTUS_USED'] = ip_total_used_cpus-ip_used_cpus
         ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE(CNT)'] = int(max(ip_total_cpus-ip_process_env_tree[ip]['CPU']['NON_LOTUS_USED'],0)/cpus_per_sector)
-        ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE(CNT)'] = int(ip_process_env_tree[ip]["RESOURCE_USAGE"]*max(ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE(CNT)'],1.0))
-        ip_process_env_tree[ip]['MEM'] = {}
+        ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE(CNT)'] = int(min(ip_process_env_tree[ip]["RESOURCE_USAGE(PRECOMMIT)"],1.0)*ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE(CNT)'])
+        # mem
         ip_process_env_tree[ip]['MEM']['TOTAL'] = ip_total_mem
         ip_process_env_tree[ip]['MEM']['LOTUS_USED'] = ip_used_mem
         ip_process_env_tree[ip]['MEM']['NON_LOTUS_USED'] = ip_total_used_mem-ip_used_mem
         ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'] = int(max(ip_total_mem-ip_process_env_tree[ip]['MEM']['NON_LOTUS_USED'],0)/mem_per_sector)
-        ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'] = int(ip_process_env_tree[ip]["RESOURCE_USAGE"]*max(ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'],1.0))
+        ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'] = int(min(ip_process_env_tree[ip]["RESOURCE_USAGE(PRECOMMIT)"],1.0)*ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'])
         # affordability check
         cached_sectors_cnt+=min(ip_process_env_tree[ip]['STORAGE']['PLEDGE_USEABLE(CNT)'],\
                                 ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE(CNT)'],\
