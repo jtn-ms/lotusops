@@ -169,7 +169,7 @@ def chkavailable(ip_process_env_tree):
     jobs=list(filter(None,runscript(script,isansible=False)))
     jstats=set([job.split()[4] for job in jobs if not job.split()[4].isdigit()])
     jstats_precommit="AP|PC1|PC2".split("|")
-    sectors_cnt_assigned = len([job for job in jobs if any(stat in job.split()[1] for stat in jstats_precommit)])
+    sectors_cnt_assigned = len([job for job in jobs if any(stat in job.split()[4] for stat in jstats_precommit)])
     workers = {}
     for job in jobs:
         try: wid= job.split()[2]
