@@ -163,7 +163,7 @@ def autopledge(interval,iplst):
         pledgeable_cnt = chkavailable(ip_process_env_tree)
         if any("inspect" in arg for arg in sys.argv): break
         import time
-        while pledgeable_cnt>=0: 
+        while pledgeable_cnt>0: 
             print(runscript("lotus-miner sectors pledge",isansible=False))
             pledgeable_cnt-=1
             time.sleep(PLEDGEING_INTEVERAL)
@@ -205,7 +205,7 @@ def chkavailable(ip_process_env_tree):
     # inspect workers
     print("#######################################################")
     print("WORKER REPORT: ")
-    cached_sectors_cnt=0
+    cached_sectors_cnt,pledgeable_sectors_cnt = 0,0
     for ip,procs in ip_process_env_tree.items():
         
         action = "ansible %s -m shell -a"%ansible_names[ip]
@@ -351,10 +351,12 @@ def chkavailable(ip_process_env_tree):
         ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'] = int(max(ip_total_mem-ip_process_env_tree[ip]['MEM']['NON_LOTUS_USED'],0)/mem_per_sector)
         ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'] = int(min(ip_process_env_tree[ip]["RESOURCE_USAGE(PRECOMMIT)"],1.0)*ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'])
         # affordability check
-        cached_sectors_cnt+=min(ip_process_env_tree[ip]['STORAGE']['PLEDGE_USEABLE(CNT)'],\
+        pledgeable_sectors_cnt+=min(ip_process_env_tree[ip]['STORAGE']['PLEDGE_USEABLE(CNT)'],\
                                 ip_process_env_tree[ip]['CPU']['LOTUS_USEABLE(CNT)'],\
                                 ip_process_env_tree[ip]['MEM']['LOTUS_USEABLE(CNT)'])
+        # cached sector cnt
+        cached_sectors_cnt+=ip_sector_cnt
 
     import json; print(json.dumps(ip_process_env_tree, indent=4, sort_keys=True))
-    print("CACHED_CNT: {0}, SECTOR_CNT: {1}".format(cached_sectors_cnt,sectors_cnt))
-    return cached_sectors_cnt-sectors_cnt
+    print("PLEDEABLE_CNT: {0}, MINER_SECTOR_CNT: {1}, WORKER_CACHED_SECTOR_CNT: {2}".format(pledgeable_sectors_cnt,sectors_cnt,cached_sectors_cnt))
+    return pledgeable_sectors_cnt-sectors_cnt
