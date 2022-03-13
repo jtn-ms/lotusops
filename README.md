@@ -31,7 +31,7 @@ ex: ```lotusops abort AP```|Abort all AP jobs
 ```lotuspledge 90 ip.lst```| Continuous pledging with a certain interval(here, 90s) in case any worker of workers listed in ip.lst is affordable for pledging
 
 ### results
-```
+```bash
 $ lotusspeed miner 230 270
 >>>
 *******************************************
@@ -58,7 +58,8 @@ MEAN(SectorCommitted)---0:23:52
 DURATION: 0.8 days  START: 2021-11-04 19:48:46, FINISH: 2021-11-05 13:51:36
 SECTOR SIZE: 32(GiB)
 PC1: 0.38T, PC2: 0.38T, C: 0.38T, FIN: 0.38T
-
+```
+```bash
 $ lotusspeed pc1 worker.log 
 >>>
 lotusspeed pc1 /filecoin1/worker.log 
@@ -73,7 +74,8 @@ MIN:  2:59:38
 MAX:  5:56:47
 MEAN: 3:32:01
 *******************************************
-
+```
+```bash
 $ lotusspeed p2 worker.log
 >>>
 DURATION:0:13:28    START:2021-11-05 01:00:16 FINISH:2021-11-05 01:13:44
@@ -87,7 +89,8 @@ MIN:  0:12:25
 MAX:  0:13:52
 MEAN: 0:13:02
 *******************************************
-
+```
+```bash
 $ lotuspledge inspect "172.26.48.134|172.26.48.135"
 >>>
 #######################################################
