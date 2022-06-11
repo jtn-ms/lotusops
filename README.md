@@ -1,5 +1,5 @@
 # lotusops - A DevOps tool for lotus(filecoin)
-As a simply & smartly capsulized tool, it helps lotus users to inspect performance of their workers, autopledge cleverly, and abort & remove unnecessary jobs & sectors. This tool uses lotus-miner & ansible commands directly & indirectly. Before using it, please make sure `lotus-miner` & `ansible <workername> -m ping` is affordable on your miner node. The file path for ansible hosts is expected in `/etc/ansible/hosts`
+As a simply & smartly capsulized tool, lotusops was built to helps lotus users to inspect performance of their workers, autopledge cleverly, and abort & remove unnecessary jobs & sectors. This tool uses lotus-miner & ansible commands directly & indirectly. Before using it, please make sure `lotus-miner` & `ansible <workername> -m ping` is affordable on your miner node. The file path for ansible hosts is expected in `/etc/ansible/hosts`
 ### install
 ```
 [from source]
